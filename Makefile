@@ -4,7 +4,7 @@ TAILWIND ?= tailwindcss
 HELM ?= helm
 PROMTOOL ?= promtool
 
-.PHONY: css check demo helm-lint alerts-test
+.PHONY: css check demo helm-lint alerts-test visual visual-update visual-browsers
 
 css: ## Rebuild assets/dist/app.css from assets/app.css and the templates
 	$(TAILWIND) -i assets/app.css -o assets/dist/app.css --minify
@@ -13,6 +13,15 @@ check: ## What CI runs for the Rust code
 	cargo fmt --check
 	cargo clippy --all-targets --locked -- -D warnings
 	cargo test --locked
+
+visual: ## Screenshot tests in Chromium against tests/screenshots/
+	cargo test --locked --test visual -- --ignored
+
+visual-update: ## Rewrite tests/screenshots/ (keep only images rendered on CI)
+	UPDATE_SNAPSHOTS=1 cargo test --locked --test visual -- --ignored
+
+visual-browsers: ## Install the Chromium the Playwright driver expects
+	cargo run --locked --example install-browsers -- chromium
 
 demo: ## Run the UI with sample data
 	cargo run -- --demo

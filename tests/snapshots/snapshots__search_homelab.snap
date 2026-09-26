@@ -1,0 +1,15 @@
+---
+source: tests/snapshots.rs
+expression: html
+---
+
+<div role="group" aria-labelledby="command-domains">
+  <span role="heading" id="command-domains">Domains</span>
+  
+  <a role="menuitem" href="/domains/prdv.cloud" class="active">
+    <span class="state-dot" data-state="ok"></span>
+    <span class="truncate">prdv.cloud</span>
+    <span class="ms-auto" data-shortcut>OK · in 212d</span>
+  </a>
+  
+</div>

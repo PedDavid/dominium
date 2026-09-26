@@ -1,0 +1,312 @@
+---
+source: tests/snapshots.rs
+expression: html
+---
+<!doctype html>
+<html lang="en" class="" data-palette="neutral">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="htmx-config" content='{"includeIndicatorStyles":false,"allowEval":false,"allowScriptTags":false}'>
+  <title>side-project.io · dominium</title>
+  <link rel="stylesheet" href="/assets/dist/app.css?v=[hash]">
+  <link rel="icon" href="/assets/dist/favicon.svg?v=[hash]" type="image/svg+xml">
+  <script src="/assets/vendor/htmx/htmx.min.js?v=[hash]" defer></script>
+  <script src="/assets/js/app.js?v=[hash]" defer></script>
+</head>
+<body class="min-h-screen bg-background text-foreground antialiased">
+  
+  <div class="bg-primary text-primary-foreground text-center text-xs py-1">Demo mode: sample data, nothing is looked up.</div>
+  
+  <header class="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
+    <div class="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
+      <a href="/" class="flex items-center gap-2 font-semibold [&>svg]:size-5">
+        <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+  <path d="M2 12h20" />
+</svg>
+        <span>dominium</span>
+      </a>
+      <div class="ms-auto flex items-center gap-1">
+        <button type="button" class="btn hidden sm:inline-flex text-muted-foreground" data-variant="outline" data-size="sm" data-palette-open aria-label="Search domains" aria-keyshortcuts="Control+K Meta+K">
+          <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m21 21-4.34-4.34" />
+  <circle cx="11" cy="11" r="8" />
+</svg>
+          <span class="pe-4">Search domains…</span>
+          <kbd class="kbd">⌘K</kbd>
+        </button>
+        <button type="button" class="btn sm:hidden" data-variant="ghost" data-size="icon" data-palette-open aria-label="Search domains">
+          <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m21 21-4.34-4.34" />
+  <circle cx="11" cy="11" r="8" />
+</svg>
+        </button>
+        <button type="button" class="btn" data-variant="ghost" data-size="icon" data-theme-toggle aria-label="Toggle dark mode">
+          <span class="dark:hidden"><svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
+</svg></span>
+          <span class="hidden dark:inline"><svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="4" />
+  <path d="M12 2v2" />
+  <path d="M12 20v2" />
+  <path d="m4.93 4.93 1.41 1.41" />
+  <path d="m17.66 17.66 1.41 1.41" />
+  <path d="M2 12h2" />
+  <path d="M20 12h2" />
+  <path d="m6.34 17.66-1.41 1.41" />
+  <path d="m19.07 4.93-1.41 1.41" />
+</svg></span>
+        </button>
+        <button type="button" class="btn" data-variant="ghost" data-size="icon" data-palette-cycle aria-label="Change colour palette" title="Colour palette">
+          <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" />
+  <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+  <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+  <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+  <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+</svg>
+        </button>
+      </div>
+    </div>
+  </header>
+  <main class="mx-auto max-w-6xl px-4 py-6">
+    
+<div class="flex flex-col gap-6">
+  <a href="/" class="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground [&>svg]:size-4">
+    <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m15 18-6-6 6-6" />
+</svg> All domains
+  </a>
+
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-2xl font-semibold tracking-tight">side-project.io</h1>
+      <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <span class="badge state-badge" data-state="ok"><span class="state-dot"></span>OK</span>
+        <span class="badge" data-variant="outline">Namecheap</span>
+        
+        <span>Side project</span>
+      </div>
+    </div>
+    
+    <a class="btn" data-variant="outline" href="https://ap.www.namecheap.com/domains/list/" target="_blank" rel="noopener noreferrer">
+      Manage at Namecheap <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 3h6v6" />
+  <path d="M10 14 21 3" />
+  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+</svg>
+    </a>
+    
+  </div>
+
+  
+  <div class="alert" data-variant="destructive" role="alert">
+    <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+  <path d="M12 9v4" />
+  <path d="M12 17h.01" />
+</svg>
+    <h2>Registrar mismatch</h2>
+    <section><p>The inventory says Namecheap, but the registry reports <strong>Cloudflare, Inc.</strong>. If a transfer finished, update the inventory in Pulumi.</p></section>
+  </div>
+  
+  
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="card">
+      <header>
+        <h2>Renewal</h2>
+        <p>The expiry comes from Cloudflare, else RDAP, else the inventory.</p>
+      </header>
+      <section>
+        <dl class="kv">
+          <dt>Expires</dt>
+          <dd>2027-07-23 12:00 UTC <span class="text-muted-foreground">(in 300d, from RDAP)</span></dd>
+          <dt>Auto-renew</dt>
+          <dd>on <span class="text-muted-foreground">· from inventory</span></dd>
+          <dt>Per year</dt>
+          <dd>$61.98 <span class="text-muted-foreground">· from price table</span></dd>
+          <dt>Alerts</dt>
+          <dd>warning 30d before <span class="text-muted-foreground">(skipped: auto-renew is on)</span>, critical 7d before</dd>
+          
+        </dl>
+        
+      </section>
+    </div>
+    <div class="card">
+      <header>
+        <h2>Registration</h2>
+        <p>What the registry reports over RDAP.</p>
+      </header>
+      <section class="flex flex-col gap-3">
+        
+        
+        <dl class="kv">
+          <dt>Registrar</dt>
+          <dd>Cloudflare, Inc.</dd>
+          <dt>Registered</dt>
+          <dd>2025-08-22</dd>
+          <dt>Expires</dt>
+          <dd>2027-07-23</dd>
+          <dt>Last changed</dt>
+          <dd>2026-03-10</dd>
+          <dt>Nameservers</dt>
+          <dd><code class="block text-xs">ada.ns.cloudflare.com</code><code class="block text-xs">bob.ns.cloudflare.com</code></dd>
+          <dt>Checked</dt>
+          <dd>42m ago · <a class="underline underline-offset-4" href="https://rdap.example/domain" target="_blank" rel="noopener noreferrer">raw</a></dd>
+        </dl>
+        
+        <div class="flex flex-wrap gap-1.5">
+          <span class="badge" data-variant="outline">client transfer prohibited</span>
+        </div>
+        
+        
+      </section>
+    </div>
+    <div class="card">
+      <header>
+        <h2>Inventory</h2>
+        <p>As declared by Pulumi.</p>
+      </header>
+      <section class="flex flex-col gap-3">
+        <dl class="kv">
+          <dt>Source</dt>
+          <dd><code class="text-xs">domains/domains.json</code></dd>
+          <dt>Registrar</dt>
+          <dd><code class="text-xs">namecheap</code></dd>
+        </dl>
+        
+      </section>
+    </div>
+    
+  </div>
+</div>
+
+  </main>
+  <dialog id="command-palette" class="command-dialog" aria-label="Search domains">
+    <div class="command">
+      <header>
+        <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m21 21-4.34-4.34" />
+  <circle cx="11" cy="11" r="8" />
+</svg>
+        <input type="search" name="q" placeholder="Search domains…" autocomplete="off" aria-label="Search domains"
+               hx-get="/search" hx-trigger="input changed delay:150ms, search, palette-open" hx-target="#command-results">
+      </header>
+      <div id="command-results" role="menu" aria-orientation="vertical" data-empty="No domains found."></div>
+    </div>
+  </dialog>
+</body>
+</html>
