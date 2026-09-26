@@ -5,7 +5,8 @@
 //! They need Playwright's Chromium, so plain `cargo test` skips them:
 //! `make visual` runs them and `make visual-update` rewrites the baselines.
 //! Baselines are rendered on CI's Linux runner (fonts and antialiasing differ
-//! between machines), so update them with the "Update screenshots" workflow.
+//! between machines): take them from the `screenshots` artifact of the CI
+//! workflow, run by hand with "update screenshots" ticked.
 
 mod common;
 
