@@ -11,10 +11,21 @@ mod common;
 
 use std::path::PathBuf;
 
-use playwright_rs::protocol::{BrowserContextOptions, Cookie, Page, Playwright, Viewport};
+use axum::http::header;
+use axum::routing::get;
+use playwright_rs::protocol::{
+    AddStyleTagOptions, BrowserContextOptions, Cookie, Page, Playwright, Viewport,
+};
 use playwright_rs::{Animations, ScreenshotAssertionOptions, expect, expect_page};
 
 const ORIGIN: &str = "https://dominium.test";
+
+/// Dialogs and the palette animate in with `@starting-style`; a screenshot
+/// taken during that would catch them half-faded. Served from the app's own
+/// origin because its CSP (`style-src 'self'`) refuses inline styles.
+const NO_MOTION: &str = "*, *::before, *::after, ::backdrop { \
+    transition: none !important; animation: none !important; }";
+const NO_MOTION_PATH: &str = "/__test/no-motion.css";
 
 /// A browser page with the app routed in, holding on to what keeps it alive.
 struct Ui {
@@ -54,12 +65,23 @@ async fn open(path: &str, cookies: &[(&str, &str)]) -> Ui {
         })
         .collect();
     context.add_cookies(&cookies).await.unwrap();
+    let app = common::app().route(
+        NO_MOTION_PATH,
+        get(|| async { ([(header::CONTENT_TYPE, "text/css")], NO_MOTION) }),
+    );
     context
-        .route_service(&format!("{ORIGIN}/**"), common::app())
+        .route_service(&format!("{ORIGIN}/**"), app)
         .await
         .unwrap();
     let page = context.new_page().await.unwrap();
     page.goto(&format!("{ORIGIN}{path}"), None).await.unwrap();
+    page.add_style_tag(
+        AddStyleTagOptions::builder()
+            .url(format!("{ORIGIN}{NO_MOTION_PATH}"))
+            .build(),
+    )
+    .await
+    .unwrap();
     Ui {
         page,
         _playwright: playwright,
