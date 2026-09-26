@@ -16,6 +16,7 @@ use axum::http::{HeaderValue, StatusCode, header};
 use axum::middleware::{self, Next};
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
+use jiff::Timestamp;
 use rust_embed::RustEmbed;
 use tower_http::trace::TraceLayer;
 
@@ -31,17 +32,33 @@ pub struct Inner {
     pub domains: Arc<Domains>,
     pub demo: bool,
     pub asset_version: String,
+    /// Pins the clock the pages render relative dates against (tests only).
+    pub fixed_now: Option<Timestamp>,
 }
 
 impl AppState {
     pub fn new(domains: Arc<Domains>, demo: bool) -> Self {
+        AppState::build(domains, demo, None)
+    }
+
+    /// Renders every page as if it were `now`, so output is reproducible.
+    pub fn with_fixed_now(domains: Arc<Domains>, demo: bool, now: Timestamp) -> Self {
+        AppState::build(domains, demo, Some(now))
+    }
+
+    fn build(domains: Arc<Domains>, demo: bool, fixed_now: Option<Timestamp>) -> Self {
         AppState {
             inner: Arc::new(Inner {
                 domains,
                 demo,
                 asset_version: asset_version(),
+                fixed_now,
             }),
         }
+    }
+
+    fn now(&self) -> Timestamp {
+        self.inner.fixed_now.unwrap_or_else(Timestamp::now)
     }
 }
 
