@@ -1,0 +1,129 @@
+# Rendered by Helm's `tpl`, so Prometheus' own template expressions are
+# escaped as raw strings in backticks.
+# Warning between warnBefore and criticalBefore (and only while auto-renew is
+# not known to be on), critical inside criticalBefore whatever auto-renew says:
+# that close to expiry, an auto-renewal has failed.
+- alert: DomainExpiringSoon
+  expr: |
+    (
+      (dominium_domain_expiry_timestamp_seconds - time())
+        < dominium_domain_warn_before_seconds
+      and (dominium_domain_expiry_timestamp_seconds - time())
+        >= dominium_domain_critical_before_seconds
+    )
+    unless on (domain, registrar) (dominium_domain_auto_renew == 1)
+  labels:
+    severity: warning
+    {{- with .alertLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    summary: {{`"Domain {{ $labels.domain }} expires in {{ $value | humanizeDuration }}"`}}
+    description: {{`"Auto-renew is off or unknown. Renew it at {{ $labels.registrar }}."`}}
+    {{- if .url }}
+    runbook_url: {{ printf "%s/domains/{{ $labels.domain }}" .url | quote }}
+    {{- end }}
+- alert: DomainExpiringVerySoon
+  expr: |
+    (dominium_domain_expiry_timestamp_seconds - time())
+      < dominium_domain_critical_before_seconds
+    and (dominium_domain_expiry_timestamp_seconds - time()) > 0
+  labels:
+    severity: critical
+    {{- with .alertLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    summary: {{`"Domain {{ $labels.domain }} expires in {{ $value | humanizeDuration }}"`}}
+    description: "If auto-renew is on, the renewal has not happened: check the payment method at the registrar."
+    {{- if .url }}
+    runbook_url: {{ printf "%s/domains/{{ $labels.domain }}" .url | quote }}
+    {{- end }}
+- alert: DomainExpired
+  expr: dominium_domain_expiry_timestamp_seconds - time() <= 0
+  labels:
+    severity: critical
+    {{- with .alertLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    summary: {{`"Domain {{ $labels.domain }} has expired"`}}
+    description: "Most registries allow renewal during a grace period; after that the domain can be lost."
+    {{- if .url }}
+    runbook_url: {{ printf "%s/domains/{{ $labels.domain }}" .url | quote }}
+    {{- end }}
+- alert: DomainExpiryUnknown
+  expr: dominium_domain_state_known == 0
+  for: 1d
+  labels:
+    severity: warning
+    {{- with .alertLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    summary: {{`"No expiry known for domain {{ $labels.domain }}"`}}
+    description: "RDAP has not answered. Set expiresAt in the inventory, or an RDAP server for the TLD in the settings."
+    {{- if .url }}
+    runbook_url: {{ printf "%s/domains/{{ $labels.domain }}" .url | quote }}
+    {{- end }}
+- alert: DomainRegistrarMismatch
+  expr: dominium_domain_registrar_mismatch == 1
+  for: 1h
+  labels:
+    severity: warning
+    {{- with .alertLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    summary: {{`"Domain {{ $labels.domain }} is at {{ $labels.rdap_registrar }}, not {{ $labels.registrar }}"`}}
+    description: "If a transfer finished, update the inventory in Pulumi."
+- alert: DomainMissingFromCloudflare
+  expr: dominium_domain_missing_from_cloudflare == 1
+  for: 1d
+  labels:
+    severity: info
+    {{- with .alertLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    summary: {{`"Domain {{ $labels.domain }} is declared as a Cloudflare domain but is not in the account"`}}
+- alert: DomainUndeclared
+  expr: dominium_undeclared_domain == 1
+  for: 1h
+  labels:
+    severity: info
+    {{- with .alertLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    summary: {{`"Domain {{ $labels.domain }} is in Cloudflare but not in the inventory"`}}
+- alert: DomainInventoryInvalid
+  expr: dominium_inventory_problems > 0
+  for: 10m
+  labels:
+    severity: warning
+    {{- with .alertLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    summary: {{`"{{ $value }} invalid or duplicate entries in the domain inventory"`}}
+    description: "Those domains are not tracked. The UI lists the problems."
+- alert: DomainRdapStale
+  expr: time() - dominium_domain_last_checked_timestamp_seconds{source="rdap"} > 3 * 86400
+  labels:
+    severity: info
+    {{- with .alertLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    summary: {{`"RDAP has not answered for domain {{ $labels.domain }} in {{ $value | humanizeDuration }}"`}}
+- alert: DominiumDown
+  expr: absent(up{job=~".*dominium.*"} == 1)
+  for: 15m
+  labels:
+    severity: warning
+    {{- with .alertLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    summary: "dominium is not being scraped; domain expiry alerts are blind"

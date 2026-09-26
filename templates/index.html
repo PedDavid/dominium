@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex flex-col gap-6">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight">Domains</h1>
+    <p class="text-muted-foreground text-sm">Where each domain is registered, when it expires and what it costs.</p>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-3">
+    <div class="card stat">
+      <section>
+        <p class="stat-label">Domains</p>
+        <p class="stat-value">{{ summary.total }}</p>
+        <p class="stat-note">{% if summary.attention == 0 %}nothing needs attention{% else %}{{ summary.attention }} need{% if summary.attention == 1 %}s{% endif %} attention{% endif %}</p>
+      </section>
+    </div>
+    <div class="card stat">
+      <section>
+        <p class="stat-label">Next expiry</p>
+        {% if summary.next_name.is_empty() %}
+        <p class="stat-value">—</p>
+        {% else %}
+        <p class="stat-value" title="{{ summary.next_date }}">{{ summary.next_rel }}</p>
+        <p class="stat-note"><a class="hover:underline" href="/domains/{{ summary.next_name }}">{{ summary.next_name }}</a></p>
+        {% endif %}
+      </section>
+    </div>
+    <div class="card stat">
+      <section>
+        <p class="stat-label">Renewals per year</p>
+        <p class="stat-value">{% if summary.yearly.is_empty() %}—{% else %}{% for t in summary.yearly %}{% if !loop.first %}<span class="text-muted-foreground"> + </span>{% endif %}{{ t }}{% endfor %}{% endif %}</p>
+        <p class="stat-note">{% if summary.unpriced == 0 %}every domain priced{% else %}{{ summary.unpriced }} without a price{% endif %}</p>
+      </section>
+    </div>
+  </div>
+
+  {% if !problems.is_empty() %}
+  <div class="alert" data-variant="destructive" role="alert">
+    {% include "icons/triangle-alert.svg" %}
+    <h2>{{ problems.len() }} inventory problem{% if problems.len() != 1 %}s{% endif %}</h2>
+    <section>
+      <ul class="flex list-disc flex-col gap-1 ps-5">
+        {% for p in problems %}<li><code class="text-xs">{{ p.source }}</code>: {{ p.message }}</li>{% endfor %}
+      </ul>
+    </section>
+  </div>
+  {% endif %}
+  {% if !undeclared.is_empty() %}
+  <div class="alert" role="status">
+    {% include "icons/circle-help.svg" %}
+    <h2>In Cloudflare but not in the inventory</h2>
+    <section>
+      <p>Declare {% if undeclared.len() == 1 %}it{% else %}them{% endif %} in Pulumi, or remove {% if undeclared.len() == 1 %}it{% else %}them{% endif %} from the account:</p>
+      <p class="flex flex-wrap gap-1.5">{% for n in undeclared %}<span class="badge" data-variant="outline">{{ n }}</span>{% endfor %}</p>
+    </section>
+  </div>
+  {% endif %}
+
+  <form id="filters" class="flex flex-col gap-3" hx-get="/" hx-target="#domains-table" hx-push-url="true"
+        hx-trigger="input changed delay:250ms from:#q, change">
+    {% include "partials/state_chips.html" %}
+    <div class="flex flex-wrap gap-2">
+      <div class="relative grow sm:max-w-xs">
+        <span class="pointer-events-none absolute start-2.5 top-1/2 -translate-y-1/2 text-muted-foreground [&>svg]:size-4">{% include "icons/search.svg" %}</span>
+        <input id="q" class="input ps-8" type="search" name="q" value="{{ filters.q }}" placeholder="Filter by name, purpose, tag…" aria-label="Filter">
+      </div>
+      <select class="select" name="registrar" aria-label="Registrar">
+        <option value="">All registrars</option>
+        {% for (key, name) in registrars %}
+        <option value="{{ key }}" {% if *key == filters.registrar %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+      {% if !tags.is_empty() %}
+      <select class="select" name="tag" aria-label="Tag">
+        <option value="">All tags</option>
+        {% for t in tags %}
+        <option value="{{ t }}" {% if *t == filters.tag %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
+      <select class="select" name="sort" aria-label="Sort">
+        <option value="" {% if filters.sort.is_empty() %}selected{% endif %}>Expiring first</option>
+        <option value="name" {% if filters.sort == "name" %}selected{% endif %}>Name</option>
+        <option value="registrar" {% if filters.sort == "registrar" %}selected{% endif %}>Registrar</option>
+        <option value="price" {% if filters.sort == "price" %}selected{% endif %}>Most expensive</option>
+      </select>
+    </div>
+  </form>
+
+  <div id="domains-table">
+    {% include "partials/domains_table.html" %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{{- if .Values.grafanaDashboard.enabled }}
+# Picked up by the Grafana dashboard sidecar (e.g. kube-prometheus-stack).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "dominium.fullname" . }}-dashboard
+  namespace: {{ default .Release.Namespace .Values.grafanaDashboard.namespace }}
+  labels:
+    {{- include "dominium.labels" . | nindent 4 }}
+    {{- toYaml .Values.grafanaDashboard.labels | nindent 4 }}
+data:
+  dominium.json: |-
+{{ .Files.Get "files/dashboard.json" | indent 4 }}
+{{- end }}

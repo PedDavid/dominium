@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dominium.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "dominium.labels" . | nindent 4 }}
+spec:
+  # One replica: caches are per process and nothing is written anywhere.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "dominium.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "dominium.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/settings: {{ include (print $.Template.BasePath "/settings.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "dominium.fullname" . }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: dominium
+          image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: DOMINIUM_NAMESPACE
+              value: {{ include "dominium.inventoryNamespace" . | quote }}
+            - name: DOMINIUM_SETTINGS_FILE
+              value: /etc/dominium/settings/settings.yaml
+            - name: DOMINIUM_WARN_BEFORE
+              value: {{ .Values.warnBefore | quote }}
+            - name: DOMINIUM_CRITICAL_BEFORE
+              value: {{ .Values.criticalBefore | quote }}
+            - name: DOMINIUM_RDAP_INTERVAL
+              value: {{ .Values.rdapInterval | quote }}
+            {{- if .Values.cloudflare.accountId }}
+            - name: DOMINIUM_CLOUDFLARE_ACCOUNT_ID
+              value: {{ .Values.cloudflare.accountId | quote }}
+            - name: DOMINIUM_CLOUDFLARE_TOKEN_FILE
+              value: /etc/dominium/cloudflare/{{ .Values.cloudflare.token.key }}
+            {{- end }}
+            {{- if .Values.logJson }}
+            - name: DOMINIUM_LOG_JSON
+              value: "true"
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: metrics
+              containerPort: 9090
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: metrics
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: settings
+              mountPath: /etc/dominium/settings
+              readOnly: true
+            {{- if .Values.cloudflare.accountId }}
+            - name: cloudflare
+              mountPath: /etc/dominium/cloudflare
+              readOnly: true
+            {{- end }}
+      volumes:
+        - name: settings
+          configMap:
+            name: {{ include "dominium.fullname" . }}-settings
+        {{- if .Values.cloudflare.accountId }}
+        - name: cloudflare
+          secret:
+            secretName: {{ required "cloudflare.token.existingSecret is required with cloudflare.accountId" .Values.cloudflare.token.existingSecret }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

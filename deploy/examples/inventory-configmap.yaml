@@ -1,0 +1,38 @@
+# What the Pulumi program writes: one ConfigMap (or several, e.g. one per
+# stack) in dominium's inventory namespace, with the label below. Every key
+# ending in .json is read.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: domains
+  namespace: dominium
+  labels:
+    dominium.prdv.cloud/inventory: "true"
+data:
+  domains.json: |
+    {
+      "version": 1,
+      "domains": [
+        {
+          "name": "prdv.cloud",
+          "registrar": "cloudflare",
+          "purpose": "Homelab",
+          "tags": ["infra"]
+        },
+        {
+          "name": "example.com",
+          "registrar": "namecheap",
+          "purpose": "Old blog",
+          "autoRenew": false,
+          "notes": "Transfer to Cloudflare before it renews."
+        },
+        {
+          "name": "exemplo.pt",
+          "registrar": "ptisp",
+          "autoRenew": true,
+          "expiresAt": "2027-02-13",
+          "renewal": { "price": 16.90, "currency": "EUR" },
+          "alerts": { "warnBefore": "45d" }
+        }
+      ]
+    }

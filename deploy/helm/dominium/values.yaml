@@ -1,0 +1,90 @@
+image:
+  repository: ghcr.io/peddavid/dominium
+  tag: ""  # defaults to the chart appVersion
+  pullPolicy: IfNotPresent
+
+# Public URL of the UI, used for links in alerts. Optional.
+publicUrl: ""
+
+# Namespace holding the inventory ConfigMaps (label
+# dominium.prdv.cloud/inventory=true). Defaults to the release namespace.
+# The app can read every ConfigMap there, so prefer a dedicated namespace.
+inventoryNamespace: ""
+
+# Default alert thresholds (each domain can override them in the inventory).
+# The warning is skipped while auto-renew is known to be on.
+warnBefore: 30d
+criticalBefore: 7d
+
+# How often each domain is looked up in RDAP.
+rdapInterval: 12h
+
+# Registrars and prices. Entries are merged into the built-in ones
+# (cloudflare, namecheap, porkbun, ptisp): only set what you want to change.
+settings:
+  registrars: {}
+  #  cloudflare:
+  #    currency: USD
+  #    prices: { com: 10.44, dev: 12.20 }   # yearly renewal price per TLD
+  #  namecheap:
+  #    currency: USD
+  #    prices: { com: 15.98 }
+  #  ptisp:
+  #    currency: EUR
+  #    rdapNames: ["PTisp"]   # how RDAP names the registrar, for drift checks
+  #    prices: { pt: 16.90 }
+  rdap:
+    # RDAP base URL per TLD, for TLDs missing from the IANA bootstrap file.
+    servers: {}
+
+# Optional: Cloudflare Registrar integration (auto-renew, lock, drift).
+# Needs an account API token with read access to the Registrar only.
+cloudflare:
+  accountId: ""
+  token:
+    existingSecret: ""
+    key: token
+
+service:
+  type: ClusterIP
+  port: 80
+
+# There is no login: put the UI behind your ingress's forward-auth if needed.
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: domains.example.com
+  tls: []
+
+serviceMonitor:
+  enabled: false
+  interval: 60s
+  labels: {}
+
+prometheusRule:
+  enabled: false
+  labels: {}
+  # Extra labels on every alert (e.g. for routing).
+  alertLabels: {}
+
+grafanaDashboard:
+  enabled: false
+  # Namespace watched by the Grafana sidecar (defaults to the release namespace).
+  namespace: ""
+  labels:
+    grafana_dashboard: "1"
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    memory: 128Mi
+
+logJson: true
+podAnnotations: {}
+podLabels: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,0 +1,36 @@
+# Example values: prices per registrar and TLD, the optional Cloudflare token,
+# and the Prometheus Operator integrations.
+publicUrl: https://domains.example.com
+inventoryNamespace: dominium
+
+settings:
+  registrars:
+    cloudflare:
+      currency: USD
+      prices: { com: 10.44, dev: 12.20, cloud: 21.00 }
+    namecheap:
+      currency: USD
+      prices: { com: 15.98 }
+    porkbun:
+      currency: USD
+      prices: { net: 12.52 }
+    ptisp:
+      currency: EUR
+      prices: { pt: 16.90 }
+
+cloudflare:
+  accountId: 0123456789abcdef0123456789abcdef
+  token:
+    existingSecret: dominium-cloudflare   # key "token"
+
+ingress:
+  enabled: true
+  className: traefik
+  host: domains.example.com
+
+serviceMonitor:
+  enabled: true
+prometheusRule:
+  enabled: true
+grafanaDashboard:
+  enabled: true

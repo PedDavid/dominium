@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" class="{% if layout.dark %}dark{% endif %}" data-palette="{{ layout.palette }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="htmx-config" content='{"includeIndicatorStyles":false,"allowEval":false,"allowScriptTags":false}'>
+  <title>{{ layout.title }} · dominium</title>
+  <link rel="stylesheet" href="/assets/dist/app.css?v={{ layout.asset_version }}">
+  <link rel="icon" href="/assets/dist/favicon.svg?v={{ layout.asset_version }}" type="image/svg+xml">
+  <script src="/assets/vendor/htmx/htmx.min.js?v={{ layout.asset_version }}" defer></script>
+  <script src="/assets/js/app.js?v={{ layout.asset_version }}" defer></script>
+</head>
+<body class="min-h-screen bg-background text-foreground antialiased">
+  {% if layout.demo %}
+  <div class="bg-primary text-primary-foreground text-center text-xs py-1">Demo mode: sample data, nothing is looked up.</div>
+  {% endif %}
+  <header class="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
+    <div class="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
+      <a href="/" class="flex items-center gap-2 font-semibold [&>svg]:size-5">
+        {% include "icons/globe.svg" %}
+        <span>dominium</span>
+      </a>
+      <div class="ms-auto flex items-center gap-1">
+        <button type="button" class="btn hidden sm:inline-flex text-muted-foreground" data-variant="outline" data-size="sm" data-palette-open aria-label="Search domains" aria-keyshortcuts="Control+K Meta+K">
+          {% include "icons/search.svg" %}
+          <span class="pe-4">Search domains…</span>
+          <kbd class="kbd">⌘K</kbd>
+        </button>
+        <button type="button" class="btn sm:hidden" data-variant="ghost" data-size="icon" data-palette-open aria-label="Search domains">
+          {% include "icons/search.svg" %}
+        </button>
+        <button type="button" class="btn" data-variant="ghost" data-size="icon" data-theme-toggle aria-label="Toggle dark mode">
+          <span class="dark:hidden">{% include "icons/moon.svg" %}</span>
+          <span class="hidden dark:inline">{% include "icons/sun.svg" %}</span>
+        </button>
+        <button type="button" class="btn" data-variant="ghost" data-size="icon" data-palette-cycle aria-label="Change colour palette" title="Colour palette">
+          {% include "icons/palette.svg" %}
+        </button>
+      </div>
+    </div>
+  </header>
+  <main class="mx-auto max-w-6xl px-4 py-6">
+    {% block content %}{% endblock %}
+  </main>
+  <dialog id="command-palette" class="command-dialog" aria-label="Search domains">
+    <div class="command">
+      <header>
+        {% include "icons/search.svg" %}
+        <input type="search" name="q" placeholder="Search domains…" autocomplete="off" aria-label="Search domains"
+               hx-get="/search" hx-trigger="input changed delay:150ms, search, palette-open" hx-target="#command-results">
+      </header>
+      <div id="command-results" role="menu" aria-orientation="vertical" data-empty="No domains found."></div>
+    </div>
+  </dialog>
+</body>
+</html>

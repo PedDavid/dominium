@@ -1,0 +1,64 @@
+{% if rows.is_empty() %}
+<div class="empty rounded-lg border border-dashed">
+  <header>
+    <figure>{% include "icons/globe.svg" %}</figure>
+    {% if total == 0 %}
+    <h3>No domains yet</h3>
+    <p>Create a ConfigMap labelled <code>dominium.prdv.cloud/inventory=true</code> with a <code>domains.json</code> to see them here.</p>
+    {% else %}
+    <h3>No matching domains</h3>
+    <p>Try a different filter.</p>
+    {% endif %}
+  </header>
+</div>
+{% else %}
+<div class="table-container rounded-lg border">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Domain</th>
+        <th>Status</th>
+        <th>Expires</th>
+        <th class="hidden sm:table-cell">Auto-renew</th>
+        <th class="hidden md:table-cell">Registrar</th>
+        <th class="hidden md:table-cell text-end!">Per year</th>
+        <th class="text-end"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>
+          <a href="/domains/{{ row.name }}" class="font-medium hover:underline">{{ row.name }}</a>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            {% if !row.purpose.is_empty() %}<span>{{ row.purpose }}</span>{% endif %}
+            {% for t in row.tags %}<span class="badge" data-variant="secondary">{{ t }}</span>{% endfor %}
+            {% if row.drift %}<span class="badge" data-variant="destructive">drift</span>{% endif %}
+          </div>
+        </td>
+        <td><span class="badge state-badge" data-state="{{ row.state_str() }}"><span class="state-dot"></span>{{ row.state_label() }}</span></td>
+        <td>
+          <div title="{{ row.expires_date }}">{{ row.expires_rel }}</div>
+          {% if !row.expires_date.is_empty() %}<div class="text-xs text-muted-foreground">{{ row.expires_date }}</div>{% endif %}
+        </td>
+        <td class="hidden sm:table-cell">
+          {% if row.auto_renew == "on" %}<span class="inline-flex items-center gap-1 [&>svg]:size-3.5">{% include "icons/repeat.svg" %} on</span>
+          {% else if row.auto_renew == "off" %}<span class="text-(--state-warning)">off</span>
+          {% else %}<span class="text-muted-foreground">unknown</span>{% endif %}
+        </td>
+        <td class="hidden md:table-cell text-muted-foreground">{{ row.registrar_name }}</td>
+        <td class="hidden md:table-cell text-end tabular-nums">{% if row.price_label.is_empty() %}<span class="text-muted-foreground">—</span>{% else %}{{ row.price_label }}{% endif %}</td>
+        <td class="text-end">
+          {% if let Some(url) = row.manage_url %}
+          <a class="btn" data-variant="ghost" data-size="sm" href="{{ url }}" target="_blank" rel="noopener noreferrer">
+            Manage {% include "icons/external-link.svg" %}
+          </a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% if oob %}{% include "partials/state_chips.html" %}{% endif %}

@@ -1,0 +1,10 @@
+dominium is installed.
+
+Inventory: kubectl -n {{ include "dominium.inventoryNamespace" . }} get configmaps -l dominium.prdv.cloud/inventory=true
+{{- if .Values.publicUrl }}
+UI:        {{ .Values.publicUrl }}
+{{- end }}
+{{- if not .Values.cloudflare.accountId }}
+
+No Cloudflare token: expiry comes from RDAP and the inventory only.
+{{- end }}

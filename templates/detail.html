@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex flex-col gap-6">
+  <a href="/" class="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground [&>svg]:size-4">
+    {% include "icons/chevron-left.svg" %} All domains
+  </a>
+
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-2xl font-semibold tracking-tight">{{ d.row.name }}</h1>
+      <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <span class="badge state-badge" data-state="{{ d.row.state_str() }}"><span class="state-dot"></span>{{ d.row.state_label() }}</span>
+        <span class="badge" data-variant="outline">{{ d.row.registrar_name }}</span>
+        {% for t in d.row.tags %}<span class="badge" data-variant="secondary">{{ t }}</span>{% endfor %}
+        {% if !d.row.purpose.is_empty() %}<span>{{ d.row.purpose }}</span>{% endif %}
+      </div>
+    </div>
+    {% if let Some(url) = d.row.manage_url %}
+    <a class="btn" data-variant="outline" href="{{ url }}" target="_blank" rel="noopener noreferrer">
+      Manage at {{ d.row.registrar_name }} {% include "icons/external-link.svg" %}
+    </a>
+    {% endif %}
+  </div>
+
+  {% if !d.registrar_mismatch.is_empty() %}
+  <div class="alert" data-variant="destructive" role="alert">
+    {% include "icons/triangle-alert.svg" %}
+    <h2>Registrar mismatch</h2>
+    <section><p>The inventory says {{ d.row.registrar_name }}, but the registry reports <strong>{{ d.registrar_mismatch }}</strong>. If a transfer finished, update the inventory in Pulumi.</p></section>
+  </div>
+  {% endif %}
+  {% if d.missing_from_cloudflare %}
+  <div class="alert" data-variant="destructive" role="alert">
+    {% include "icons/triangle-alert.svg" %}
+    <h2>Not in the Cloudflare account</h2>
+    <section><p>The inventory says Cloudflare, but the account's Registrar does not list this domain. Is a transfer still pending?</p></section>
+  </div>
+  {% endif %}
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="card">
+      <header>
+        <h2>Renewal</h2>
+        <p>The expiry comes from Cloudflare, else RDAP, else the inventory.</p>
+      </header>
+      <section>
+        <dl class="kv">
+          <dt>Expires</dt>
+          <dd>{% if d.expires_full.is_empty() %}unknown{% else %}{{ d.expires_full }} <span class="text-muted-foreground">({{ d.row.expires_rel }}, from {{ d.row.expires_source }})</span>{% endif %}</dd>
+          <dt>Auto-renew</dt>
+          <dd>{{ d.row.auto_renew }}{% if !d.auto_renew_source.is_empty() %} <span class="text-muted-foreground">· from {{ d.auto_renew_source }}</span>{% endif %}</dd>
+          <dt>Per year</dt>
+          <dd>{% if d.row.price_label.is_empty() %}<span class="text-muted-foreground">no price: add one to the price table or the inventory</span>{% else %}{{ d.row.price_label }} <span class="text-muted-foreground">· from {{ d.price_source }}</span>{% endif %}</dd>
+          <dt>Alerts</dt>
+          <dd>warning {{ d.warn_before }} before{% if d.auto_renew_skips_warning %} <span class="text-muted-foreground">(skipped: auto-renew is on)</span>{% endif %}, critical {{ d.critical_before }} before</dd>
+          {% if !d.inventory_expires.is_empty() && d.row.expires_source != "inventory" %}
+          <dt>Inventory</dt>
+          <dd>expires {{ d.inventory_expires }} <span class="text-muted-foreground">(fallback)</span></dd>
+          {% endif %}
+        </dl>
+        {% if d.rdap_disagrees() %}
+        <p class="mt-3 text-sm text-muted-foreground">RDAP reports {{ d.rdap_expires }}; the {{ d.row.expires_source }} date is used.</p>
+        {% endif %}
+      </section>
+    </div>
+    <div class="card">
+      <header>
+        <h2>Registration</h2>
+        <p>What the registry reports over RDAP.</p>
+      </header>
+      <section class="flex flex-col gap-3">
+        {% if !d.rdap_error.is_empty() %}
+        <p class="text-sm text-destructive">{{ d.rdap_error }}{% if !d.rdap_last_ok.is_empty() %} <span class="text-muted-foreground">(showing the answer from {{ d.rdap_last_ok }})</span>{% endif %}</p>
+        {% endif %}
+        {% if d.rdap_checked.is_empty() %}
+        <p class="text-sm text-muted-foreground">Not looked up yet.</p>
+        {% else if d.rdap_last_ok.is_empty() %}
+        <p class="text-sm text-muted-foreground">Checked {{ d.rdap_checked }}.</p>
+        {% else %}
+        <dl class="kv">
+          <dt>Registrar</dt>
+          <dd>{% if d.rdap_registrar.is_empty() %}—{% else %}{{ d.rdap_registrar }}{% endif %}</dd>
+          <dt>Registered</dt>
+          <dd>{% if d.rdap_registered.is_empty() %}—{% else %}{{ d.rdap_registered }}{% endif %}</dd>
+          <dt>Expires</dt>
+          <dd>{% if d.rdap_expires.is_empty() %}—{% else %}{{ d.rdap_expires }}{% endif %}</dd>
+          <dt>Last changed</dt>
+          <dd>{% if d.rdap_updated.is_empty() %}—{% else %}{{ d.rdap_updated }}{% endif %}</dd>
+          <dt>Nameservers</dt>
+          <dd>{% if d.nameservers.is_empty() %}—{% else %}{% for ns in d.nameservers %}<code class="block text-xs">{{ ns }}</code>{% endfor %}{% endif %}</dd>
+          <dt>Checked</dt>
+          <dd>{{ d.rdap_checked }}{% if let Some(url) = d.rdap_url %} · <a class="underline underline-offset-4" href="{{ url }}" target="_blank" rel="noopener noreferrer">raw</a>{% endif %}</dd>
+        </dl>
+        {% if !d.rdap_statuses.is_empty() %}
+        <div class="flex flex-wrap gap-1.5">
+          {% for s in d.rdap_statuses %}<span class="badge" data-variant="outline">{{ s }}</span>{% endfor %}
+        </div>
+        {% endif %}
+        {% endif %}
+      </section>
+    </div>
+    <div class="card">
+      <header>
+        <h2>Inventory</h2>
+        <p>As declared by Pulumi.</p>
+      </header>
+      <section class="flex flex-col gap-3">
+        <dl class="kv">
+          <dt>Source</dt>
+          <dd><code class="text-xs">{{ d.source }}</code></dd>
+          <dt>Registrar</dt>
+          <dd><code class="text-xs">{{ d.row.registrar }}</code></dd>
+        </dl>
+        {% if !d.notes.is_empty() %}<p class="whitespace-pre-line text-sm">{{ d.notes }}</p>{% endif %}
+      </section>
+    </div>
+    {% if cloudflare_enabled && d.row.registrar == "cloudflare" %}
+    <div class="card">
+      <header>
+        <h2>Cloudflare</h2>
+        <p>The account's Registrar entry.</p>
+      </header>
+      <section>
+        {% if let Some(cf) = d.cloudflare %}
+        <dl class="kv">
+          <dt>Expires</dt><dd>{{ cf.expires }}</dd>
+          <dt>Auto-renew</dt><dd>{{ cf.auto_renew }}</dd>
+          <dt>Locked</dt><dd>{{ cf.locked }}</dd>
+          <dt>Privacy</dt><dd>{{ cf.privacy }}</dd>
+        </dl>
+        {% else %}
+        <p class="text-sm text-muted-foreground">No data from the account yet.</p>
+        {% endif %}
+      </section>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
