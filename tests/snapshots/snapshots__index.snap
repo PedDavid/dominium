@@ -1,0 +1,752 @@
+---
+source: tests/snapshots.rs
+expression: html
+---
+<!doctype html>
+<html lang="en" class="" data-palette="neutral">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="htmx-config" content='{"includeIndicatorStyles":false,"allowEval":false,"allowScriptTags":false}'>
+  <title>Domains · dominium</title>
+  <link rel="stylesheet" href="/assets/dist/app.css?v=[hash]">
+  <link rel="icon" href="/assets/dist/favicon.svg?v=[hash]" type="image/svg+xml">
+  <script src="/assets/vendor/htmx/htmx.min.js?v=[hash]" defer></script>
+  <script src="/assets/js/app.js?v=[hash]" defer></script>
+</head>
+<body class="min-h-screen bg-background text-foreground antialiased">
+  
+  <div class="bg-primary text-primary-foreground text-center text-xs py-1">Demo mode: sample data, nothing is looked up.</div>
+  
+  <header class="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
+    <div class="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
+      <a href="/" class="flex items-center gap-2 font-semibold [&>svg]:size-5">
+        <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+  <path d="M2 12h20" />
+</svg>
+        <span>dominium</span>
+      </a>
+      <div class="ms-auto flex items-center gap-1">
+        <button type="button" class="btn hidden sm:inline-flex text-muted-foreground" data-variant="outline" data-size="sm" data-palette-open aria-label="Search domains" aria-keyshortcuts="Control+K Meta+K">
+          <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m21 21-4.34-4.34" />
+  <circle cx="11" cy="11" r="8" />
+</svg>
+          <span class="pe-4">Search domains…</span>
+          <kbd class="kbd">⌘K</kbd>
+        </button>
+        <button type="button" class="btn sm:hidden" data-variant="ghost" data-size="icon" data-palette-open aria-label="Search domains">
+          <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m21 21-4.34-4.34" />
+  <circle cx="11" cy="11" r="8" />
+</svg>
+        </button>
+        <button type="button" class="btn" data-variant="ghost" data-size="icon" data-theme-toggle aria-label="Toggle dark mode">
+          <span class="dark:hidden"><svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
+</svg></span>
+          <span class="hidden dark:inline"><svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="4" />
+  <path d="M12 2v2" />
+  <path d="M12 20v2" />
+  <path d="m4.93 4.93 1.41 1.41" />
+  <path d="m17.66 17.66 1.41 1.41" />
+  <path d="M2 12h2" />
+  <path d="M20 12h2" />
+  <path d="m6.34 17.66-1.41 1.41" />
+  <path d="m19.07 4.93-1.41 1.41" />
+</svg></span>
+        </button>
+        <button type="button" class="btn" data-variant="ghost" data-size="icon" data-palette-cycle aria-label="Change colour palette" title="Colour palette">
+          <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" />
+  <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+  <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+  <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+  <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+</svg>
+        </button>
+      </div>
+    </div>
+  </header>
+  <main class="mx-auto max-w-6xl px-4 py-6">
+    
+<div class="flex flex-col gap-6">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight">Domains</h1>
+    <p class="text-muted-foreground text-sm">Where each domain is registered, when it expires and what it costs.</p>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-3">
+    <div class="card stat">
+      <section>
+        <p class="stat-label">Domains</p>
+        <p class="stat-value">8</p>
+        <p class="stat-note">5 need attention</p>
+      </section>
+    </div>
+    <div class="card stat">
+      <section>
+        <p class="stat-label">Next expiry</p>
+        
+        <p class="stat-value" title="2026-10-01">in 5d</p>
+        <p class="stat-note"><a class="hover:underline" href="/domains/shop-demo.net">shop-demo.net</a></p>
+        
+      </section>
+    </div>
+    <div class="card stat">
+      <section>
+        <p class="stat-label">Renewals per year</p>
+        <p class="stat-value">$144.86<span class="text-muted-foreground"> + </span>€16.90</p>
+        <p class="stat-note">every domain priced</p>
+      </section>
+    </div>
+  </div>
+
+  
+  
+  <div class="alert" role="status">
+    <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+  <path d="M12 17h.01" />
+</svg>
+    <h2>In Cloudflare but not in the inventory</h2>
+    <section>
+      <p>Declare it in Pulumi, or remove it from the account:</p>
+      <p class="flex flex-wrap gap-1.5"><span class="badge" data-variant="outline">forgotten.xyz</span></p>
+    </section>
+  </div>
+  
+
+  <form id="filters" class="flex flex-col gap-3" hx-get="/" hx-target="#domains-table" hx-push-url="true"
+        hx-trigger="input changed delay:250ms from:#q, change">
+    <div id="state-chips" class="flex flex-wrap gap-2" role="group" aria-label="Filter by state">
+  <label class="state-chip" data-active="true">
+    <input type="radio" name="state" value="" class="sr-only" checked>
+    All <span class="text-muted-foreground">8</span>
+  </label>
+  
+  <label class="state-chip" data-state="expired" data-active="false">
+    <input type="radio" name="state" value="expired" class="sr-only" >
+    <span class="state-dot"></span>Expired <span class="text-muted-foreground">1</span>
+  </label>
+  
+  <label class="state-chip" data-state="critical" data-active="false">
+    <input type="radio" name="state" value="critical" class="sr-only" >
+    <span class="state-dot"></span>Critical <span class="text-muted-foreground">1</span>
+  </label>
+  
+  <label class="state-chip" data-state="warning" data-active="false">
+    <input type="radio" name="state" value="warning" class="sr-only" >
+    <span class="state-dot"></span>Due soon <span class="text-muted-foreground">1</span>
+  </label>
+  
+  <label class="state-chip" data-state="unknown" data-active="false">
+    <input type="radio" name="state" value="unknown" class="sr-only" >
+    <span class="state-dot"></span>Unknown <span class="text-muted-foreground">1</span>
+  </label>
+  
+  <label class="state-chip" data-state="ok" data-active="false">
+    <input type="radio" name="state" value="ok" class="sr-only" >
+    <span class="state-dot"></span>OK <span class="text-muted-foreground">4</span>
+  </label>
+  
+</div>
+    <div class="flex flex-wrap gap-2">
+      <div class="relative grow sm:max-w-xs">
+        <span class="pointer-events-none absolute start-2.5 top-1/2 -translate-y-1/2 text-muted-foreground [&>svg]:size-4"><svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m21 21-4.34-4.34" />
+  <circle cx="11" cy="11" r="8" />
+</svg></span>
+        <input id="q" class="input ps-8" type="search" name="q" value="" placeholder="Filter by name, purpose, tag…" aria-label="Filter">
+      </div>
+      <select class="select" name="registrar" aria-label="Registrar">
+        <option value="">All registrars</option>
+        
+        <option value="cloudflare" >Cloudflare</option>
+        
+        <option value="namecheap" >Namecheap</option>
+        
+        <option value="porkbun" >Porkbun</option>
+        
+        <option value="ptisp" >PTisp</option>
+        
+      </select>
+      
+      <select class="select" name="tag" aria-label="Tag">
+        <option value="">All tags</option>
+        
+        <option value="experiments" >experiments</option>
+        
+        <option value="infra" >infra</option>
+        
+        <option value="web" >web</option>
+        
+      </select>
+      
+      <select class="select" name="sort" aria-label="Sort">
+        <option value="" selected>Expiring first</option>
+        <option value="name" >Name</option>
+        <option value="registrar" >Registrar</option>
+        <option value="price" >Most expensive</option>
+      </select>
+    </div>
+  </form>
+
+  <div id="domains-table">
+    
+<div class="table-container rounded-lg border">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Domain</th>
+        <th>Status</th>
+        <th>Expires</th>
+        <th class="hidden sm:table-cell">Auto-renew</th>
+        <th class="hidden md:table-cell">Registrar</th>
+        <th class="hidden md:table-cell text-end!">Per year</th>
+        <th class="text-end"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td>
+          <a href="/domains/lapsed.org" class="font-medium hover:underline">lapsed.org</a>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            
+            <span class="badge" data-variant="secondary">experiments</span>
+            
+          </div>
+        </td>
+        <td><span class="badge state-badge" data-state="expired"><span class="state-dot"></span>Expired</span></td>
+        <td>
+          <div title="2026-09-23">3d ago</div>
+          <div class="text-xs text-muted-foreground">2026-09-23</div>
+        </td>
+        <td class="hidden sm:table-cell">
+          <span class="text-(--state-warning)">off</span>
+          
+        </td>
+        <td class="hidden md:table-cell text-muted-foreground">Porkbun</td>
+        <td class="hidden md:table-cell text-end tabular-nums">$10.74</td>
+        <td class="text-end">
+          
+          <a class="btn" data-variant="ghost" data-size="sm" href="https://porkbun.com/account/domainsSpeedy" target="_blank" rel="noopener noreferrer">
+            Manage <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 3h6v6" />
+  <path d="M10 14 21 3" />
+  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+</svg>
+          </a>
+          
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          <a href="/domains/shop-demo.net" class="font-medium hover:underline">shop-demo.net</a>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            
+            <span class="badge" data-variant="secondary">experiments</span>
+            
+          </div>
+        </td>
+        <td><span class="badge state-badge" data-state="critical"><span class="state-dot"></span>Critical</span></td>
+        <td>
+          <div title="2026-10-01">in 5d</div>
+          <div class="text-xs text-muted-foreground">2026-10-01</div>
+        </td>
+        <td class="hidden sm:table-cell">
+          <span class="text-muted-foreground">unknown</span>
+        </td>
+        <td class="hidden md:table-cell text-muted-foreground">Porkbun</td>
+        <td class="hidden md:table-cell text-end tabular-nums">$12.52</td>
+        <td class="text-end">
+          
+          <a class="btn" data-variant="ghost" data-size="sm" href="https://porkbun.com/account/domainsSpeedy" target="_blank" rel="noopener noreferrer">
+            Manage <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 3h6v6" />
+  <path d="M10 14 21 3" />
+  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+</svg>
+          </a>
+          
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          <a href="/domains/example.dev" class="font-medium hover:underline">example.dev</a>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <span>Personal site</span>
+            <span class="badge" data-variant="secondary">web</span>
+            
+          </div>
+        </td>
+        <td><span class="badge state-badge" data-state="ok"><span class="state-dot"></span>OK</span></td>
+        <td>
+          <div title="2026-10-15">in 19d</div>
+          <div class="text-xs text-muted-foreground">2026-10-15</div>
+        </td>
+        <td class="hidden sm:table-cell">
+          <span class="inline-flex items-center gap-1 [&>svg]:size-3.5"><svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m17 2 4 4-4 4" />
+  <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+  <path d="m7 22-4-4 4-4" />
+  <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+</svg> on</span>
+          
+        </td>
+        <td class="hidden md:table-cell text-muted-foreground">Cloudflare</td>
+        <td class="hidden md:table-cell text-end tabular-nums">$12.20</td>
+        <td class="text-end">
+          
+          <a class="btn" data-variant="ghost" data-size="sm" href="https://dash.cloudflare.com/?to=/:account/domains" target="_blank" rel="noopener noreferrer">
+            Manage <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 3h6v6" />
+  <path d="M10 14 21 3" />
+  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+</svg>
+          </a>
+          
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          <a href="/domains/old-blog.com" class="font-medium hover:underline">old-blog.com</a>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <span>Old blog, redirects to example.dev</span>
+            <span class="badge" data-variant="secondary">web</span>
+            
+          </div>
+        </td>
+        <td><span class="badge state-badge" data-state="warning"><span class="state-dot"></span>Due soon</span></td>
+        <td>
+          <div title="2026-10-19">in 23d</div>
+          <div class="text-xs text-muted-foreground">2026-10-19</div>
+        </td>
+        <td class="hidden sm:table-cell">
+          <span class="text-(--state-warning)">off</span>
+          
+        </td>
+        <td class="hidden md:table-cell text-muted-foreground">Namecheap</td>
+        <td class="hidden md:table-cell text-end tabular-nums">$15.98</td>
+        <td class="text-end">
+          
+          <a class="btn" data-variant="ghost" data-size="sm" href="https://ap.www.namecheap.com/domains/list/" target="_blank" rel="noopener noreferrer">
+            Manage <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 3h6v6" />
+  <path d="M10 14 21 3" />
+  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+</svg>
+          </a>
+          
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          <a href="/domains/exemplo.pt" class="font-medium hover:underline">exemplo.pt</a>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <span>Portuguese landing page</span>
+            
+            
+          </div>
+        </td>
+        <td><span class="badge state-badge" data-state="ok"><span class="state-dot"></span>OK</span></td>
+        <td>
+          <div title="2027-02-13">in 139d</div>
+          <div class="text-xs text-muted-foreground">2027-02-13</div>
+        </td>
+        <td class="hidden sm:table-cell">
+          <span class="inline-flex items-center gap-1 [&>svg]:size-3.5"><svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m17 2 4 4-4 4" />
+  <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+  <path d="m7 22-4-4 4-4" />
+  <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+</svg> on</span>
+          
+        </td>
+        <td class="hidden md:table-cell text-muted-foreground">PTisp</td>
+        <td class="hidden md:table-cell text-end tabular-nums">€16.90</td>
+        <td class="text-end">
+          
+          <a class="btn" data-variant="ghost" data-size="sm" href="https://www.ptisp.pt/" target="_blank" rel="noopener noreferrer">
+            Manage <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 3h6v6" />
+  <path d="M10 14 21 3" />
+  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+</svg>
+          </a>
+          
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          <a href="/domains/prdv.cloud" class="font-medium hover:underline">prdv.cloud</a>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <span>Homelab</span>
+            <span class="badge" data-variant="secondary">infra</span>
+            
+          </div>
+        </td>
+        <td><span class="badge state-badge" data-state="ok"><span class="state-dot"></span>OK</span></td>
+        <td>
+          <div title="2027-04-26">in 212d</div>
+          <div class="text-xs text-muted-foreground">2027-04-26</div>
+        </td>
+        <td class="hidden sm:table-cell">
+          <span class="inline-flex items-center gap-1 [&>svg]:size-3.5"><svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m17 2 4 4-4 4" />
+  <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+  <path d="m7 22-4-4 4-4" />
+  <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+</svg> on</span>
+          
+        </td>
+        <td class="hidden md:table-cell text-muted-foreground">Cloudflare</td>
+        <td class="hidden md:table-cell text-end tabular-nums">$21.00</td>
+        <td class="text-end">
+          
+          <a class="btn" data-variant="ghost" data-size="sm" href="https://dash.cloudflare.com/?to=/:account/domains" target="_blank" rel="noopener noreferrer">
+            Manage <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 3h6v6" />
+  <path d="M10 14 21 3" />
+  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+</svg>
+          </a>
+          
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          <a href="/domains/side-project.io" class="font-medium hover:underline">side-project.io</a>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <span>Side project</span>
+            
+            <span class="badge" data-variant="destructive">drift</span>
+          </div>
+        </td>
+        <td><span class="badge state-badge" data-state="ok"><span class="state-dot"></span>OK</span></td>
+        <td>
+          <div title="2027-07-23">in 300d</div>
+          <div class="text-xs text-muted-foreground">2027-07-23</div>
+        </td>
+        <td class="hidden sm:table-cell">
+          <span class="inline-flex items-center gap-1 [&>svg]:size-3.5"><svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m17 2 4 4-4 4" />
+  <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+  <path d="m7 22-4-4 4-4" />
+  <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+</svg> on</span>
+          
+        </td>
+        <td class="hidden md:table-cell text-muted-foreground">Namecheap</td>
+        <td class="hidden md:table-cell text-end tabular-nums">$61.98</td>
+        <td class="text-end">
+          
+          <a class="btn" data-variant="ghost" data-size="sm" href="https://ap.www.namecheap.com/domains/list/" target="_blank" rel="noopener noreferrer">
+            Manage <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 3h6v6" />
+  <path d="M10 14 21 3" />
+  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+</svg>
+          </a>
+          
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          <a href="/domains/typo-domain.com" class="font-medium hover:underline">typo-domain.com</a>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            
+            
+            <span class="badge" data-variant="destructive">drift</span>
+          </div>
+        </td>
+        <td><span class="badge state-badge" data-state="unknown"><span class="state-dot"></span>Unknown</span></td>
+        <td>
+          <div title="">—</div>
+          
+        </td>
+        <td class="hidden sm:table-cell">
+          <span class="text-muted-foreground">unknown</span>
+        </td>
+        <td class="hidden md:table-cell text-muted-foreground">Cloudflare</td>
+        <td class="hidden md:table-cell text-end tabular-nums">$10.44</td>
+        <td class="text-end">
+          
+          <a class="btn" data-variant="ghost" data-size="sm" href="https://dash.cloudflare.com/?to=/:account/domains" target="_blank" rel="noopener noreferrer">
+            Manage <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 3h6v6" />
+  <path d="M10 14 21 3" />
+  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+</svg>
+          </a>
+          
+        </td>
+      </tr>
+      
+    </tbody>
+  </table>
+</div>
+
+
+  </div>
+</div>
+
+  </main>
+  <dialog id="command-palette" class="command-dialog" aria-label="Search domains">
+    <div class="command">
+      <header>
+        <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m21 21-4.34-4.34" />
+  <circle cx="11" cy="11" r="8" />
+</svg>
+        <input type="search" name="q" placeholder="Search domains…" autocomplete="off" aria-label="Search domains"
+               hx-get="/search" hx-trigger="input changed delay:150ms, search, palette-open" hx-target="#command-results">
+      </header>
+      <div id="command-results" role="menu" aria-orientation="vertical" data-empty="No domains found."></div>
+    </div>
+  </dialog>
+</body>
+</html>

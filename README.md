@@ -231,7 +231,24 @@ make check        # fmt, clippy, tests
 make css          # rebuild assets/dist/app.css (Tailwind standalone CLI)
 make helm-lint
 make alerts-test  # render the alert rules and run their promtool tests
+make visual       # screenshot tests in Chromium (make visual-browsers first)
 ```
+
+Every page is rendered at a fixed moment (`tests/common/mod.rs`) and checked
+two ways:
+
+- **HTML snapshots** (`tests/snapshots.rs`, [insta](https://insta.rs)) run with
+  `cargo test`. After an intended markup change, accept it with
+  `cargo insta review`.
+- **Screenshots** (`tests/visual.rs`,
+  [playwright-rs](https://github.com/padamson/playwright-rust)) drive Chromium
+  against the router in-process, including dark mode, a palette, a state
+  filter and the ⌘K palette, and compare with `tests/screenshots/*.png`. The
+  test-only Playwright driver brings its own Node.js. Fonts and antialiasing
+  vary between machines, so the baselines are the ones CI's `visual` job
+  renders: when it fails, its `screenshots` artifact has each `-actual.png`
+  and `-diff.png`. Running the CI workflow by hand with *update screenshots*
+  ticked returns a full new set to commit.
 
 ## Limitations
 
