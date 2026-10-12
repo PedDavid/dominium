@@ -15,6 +15,7 @@ Alertmanager, like [you-spin-me](https://github.com/PedDavid/you-spin-me)'s.
 | Facts (expiry, registrar, statuses) | Looked up by the app: RDAP for every domain (public, no credentials), plus the Cloudflare Registrar API when a read-only token is configured |
 | State | In memory only. Everything is either in a ConfigMap or can be fetched again, so a restart or a cluster rebuild loses nothing |
 | Prices | A per-registrar, per-TLD table in the Helm values, overridable per domain in the inventory |
+| Currencies | Prices keep their currency. Totals are estimated in one currency chosen per viewer (cookie, default from the settings), converted with the ECB's daily reference rates, overridable with fixed rates |
 | Auth | None. The data is public. Put it behind the ingress's forward-auth if wanted |
 | Secrets | None required. The Cloudflare token is optional and read-only |
 | Alerting | Prometheus metrics plus a shipped `PrometheusRule`. No notifier in the app |
@@ -43,6 +44,7 @@ Pulumi (Kotlin) ──▶ ConfigMap(s) labelled dominium.prdv.cloud/inventory=tr
 - **One replica**, no database, no leader election. Nothing is written anywhere.
 - **Refresh:** RDAP every 12h per domain (spread out by a per-domain offset,
   one request at a time), retried after 1h on failure. Cloudflare every hour.
+  ECB exchange rates every 6h (retried after 1h).
   The IANA bootstrap file is fetched at start and daily.
 - **Metrics** are computed from the caches on every scrape.
 
@@ -143,6 +145,7 @@ Per-domain metrics carry `domain` and `registrar`.
 | `dominium_domain_info{purpose, source}` | Metadata for joins |
 | `dominium_undeclared_domain{domain}` | In Cloudflare, not in the inventory |
 | `dominium_inventory_problems` | Invalid or duplicate entries |
+| `dominium_exchange_rate{currency}` | Units per 1 EUR used for estimates |
 | `dominium_rdap_requests_total{result}`, `dominium_cloudflare_requests_total{result}` | |
 
 ## 7. UI
@@ -151,7 +154,8 @@ Same look as you-spin-me: askama templates, Tailwind v4, vendored Basecoat and
 htmx, the ⌘K palette, dark mode and accent palettes. No login, no forms, no
 POST routes.
 
-- **Domains:** summary (count, next expiry, yearly cost per currency), state
+- **Domains:** summary (count, next expiry, yearly cost estimated in the
+  viewer's currency, with the per-currency breakdown and rates on hover), state
   chips, filters (text, registrar, tag), sort; table with domain, state, expiry,
   auto-renew, registrar, price. Problems and drift are listed above the table.
 - **Domain detail:** renewal (expiry and its source, auto-renew, price,

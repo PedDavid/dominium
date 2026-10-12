@@ -128,3 +128,46 @@ async fn ops_endpoints() {
     let (status, _, _) = get(ops, "/readyz", &[]).await;
     assert_eq!(status, StatusCode::OK);
 }
+
+#[tokio::test]
+async fn totals_are_estimated_in_the_chosen_currency() {
+    let app = router(AppState::new(domains(), true));
+    // Demo default: EUR. $144.86 at 1.0812 USD/EUR + €16.90.
+    let (_, _, body) = get(app.clone(), "/", &[]).await;
+    assert!(body.contains("≈ €150.88"), "EUR total");
+    assert!(body.contains("Estimate in EUR at current rates"));
+    assert!(body.contains("1 USD = 0.9249 EUR · ECB reference rate of"));
+    assert!(body.contains(r#"<option value="EUR" selected>"#));
+    assert!(body.contains(r#"<option value="BRL" >"#) || body.contains(r#"<option value="BRL">"#));
+
+    let (_, _, body) = get(app.clone(), "/", &[("cookie", "dominium_currency=USD")]).await;
+    assert!(body.contains("≈ $163.13"), "USD total");
+    assert!(body.contains("1 EUR = 1.0812 USD"));
+
+    // Unknown or malformed currencies fall back to the default.
+    for cookie in [
+        "dominium_currency=XYZ",
+        "dominium_currency=usd",
+        "dominium_currency=%3Cb%3E",
+    ] {
+        let (_, _, body) = get(app.clone(), "/", &[("cookie", cookie)]).await;
+        assert!(body.contains("≈ €150.88"), "{cookie}");
+    }
+}
+
+#[tokio::test]
+async fn price_sort_compares_converted_amounts() {
+    let app = router(AppState::new(domains(), true));
+    let (_, _, body) = get(
+        app,
+        "/?sort=price",
+        &[("hx-request", "true"), ("hx-target", "domains-table")],
+    )
+    .await;
+    // In EUR: side-project.io ($61.98 ≈ €57.33), prdv.cloud ($21.00 ≈ €19.42),
+    // exemplo.pt (€16.90), old-blog.com ($15.98 ≈ €14.78).
+    let pos = |n: &str| body.find(&format!(">{n}<")).unwrap();
+    assert!(pos("side-project.io") < pos("prdv.cloud"));
+    assert!(pos("prdv.cloud") < pos("exemplo.pt"));
+    assert!(pos("exemplo.pt") < pos("old-blog.com"));
+}

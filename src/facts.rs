@@ -1,5 +1,5 @@
-//! In-memory cache of what RDAP and Cloudflare report, and the background
-//! task that keeps it fresh. Nothing is persisted: after a restart every
+//! In-memory cache of what RDAP and Cloudflare report (and the exchange
+//! rates), and the background task that keeps it fresh. Nothing is persisted: after a restart every
 //! domain is looked up again.
 
 use std::collections::HashMap;
@@ -11,6 +11,7 @@ use jiff::{SignedDuration, Timestamp};
 use tracing::{debug, info, warn};
 
 use crate::cloudflare::{CfDomains, Registrar};
+use crate::fx::{FetchedRates, RatesSource};
 use crate::inventory::Inventory;
 use crate::metrics::Counters;
 use crate::rdap::{RdapError, RdapFacts, RdapLookup};
@@ -50,6 +51,7 @@ fn record<T>(slot: &mut Option<Check<T>>, at: Timestamp, result: Result<T, Strin
 struct Inner {
     rdap: HashMap<String, Check<RdapFacts>>,
     cloudflare: Option<Check<CfDomains>>,
+    rates: Option<Check<FetchedRates>>,
 }
 
 #[derive(Default)]
@@ -91,6 +93,14 @@ impl FactStore {
         record(&mut self.inner.write().unwrap().cloudflare, at, result);
     }
 
+    pub fn rates(&self) -> Option<Check<FetchedRates>> {
+        self.inner.read().unwrap().rates.clone()
+    }
+
+    pub fn record_rates(&self, at: Timestamp, result: Result<FetchedRates, String>) {
+        record(&mut self.inner.write().unwrap().rates, at, result);
+    }
+
     /// Drops cached answers for domains no longer in the inventory.
     pub fn retain_rdap(&self, keep: impl Fn(&str) -> bool) {
         self.inner.write().unwrap().rdap.retain(|k, _| keep(k));
@@ -102,6 +112,8 @@ pub struct Intervals {
     pub rdap: SignedDuration,
     pub rdap_retry: SignedDuration,
     pub cloudflare: SignedDuration,
+    /// Exchange rates; the ECB publishes once per working day.
+    pub rates: SignedDuration,
     /// Pause between two RDAP requests, to stay polite with registries.
     pub rdap_spacing: Duration,
     pub tick: Duration,
@@ -113,6 +125,7 @@ impl Default for Intervals {
             rdap: SignedDuration::from_hours(12),
             rdap_retry: SignedDuration::from_hours(1),
             cloudflare: SignedDuration::from_hours(1),
+            rates: SignedDuration::from_hours(6),
             rdap_spacing: Duration::from_secs(2),
             tick: Duration::from_secs(60),
         }
@@ -153,6 +166,7 @@ pub struct Refresher {
     pub facts: Arc<FactStore>,
     pub rdap: Arc<dyn RdapLookup>,
     pub cloudflare: Option<Arc<dyn Registrar>>,
+    pub rates: Option<Arc<dyn RatesSource>>,
     pub counters: Arc<Counters>,
     pub intervals: Intervals,
 }
@@ -167,8 +181,31 @@ impl Refresher {
         });
     }
 
-    /// One pass: Cloudflare if due, then every domain whose RDAP data is due.
+    /// One pass: exchange rates and Cloudflare if due, then every domain
+    /// whose RDAP data is due.
     pub async fn run_once(&self) {
+        if let Some(source) = &self.rates {
+            let due = self.facts.rates().is_none_or(|c| {
+                let wait = if c.error.is_some() {
+                    self.intervals.rdap_retry
+                } else {
+                    self.intervals.rates
+                };
+                Timestamp::now().duration_since(c.at) >= wait
+            });
+            if due {
+                let result = source.fetch().await;
+                match &result {
+                    Ok(r) => {
+                        info!(currencies = r.per_eur.len(), date = ?r.date, "exchange rates loaded")
+                    }
+                    Err(e) => warn!(error = %e, "exchange rates failed"),
+                }
+                self.counters
+                    .rates(if result.is_ok() { "ok" } else { "error" });
+                self.facts.record_rates(Timestamp::now(), result);
+            }
+        }
         if !self.inventory.ready() {
             debug!("inventory not synced yet");
             return;
@@ -251,6 +288,18 @@ mod tests {
         }
     }
 
+    struct FakeRates;
+
+    #[async_trait]
+    impl RatesSource for FakeRates {
+        async fn fetch(&self) -> Result<FetchedRates, String> {
+            Ok(FetchedRates {
+                date: None,
+                per_eur: BTreeMap::from([("USD".to_string(), 1.08)]),
+            })
+        }
+    }
+
     fn snapshot() -> Snapshot {
         let data = BTreeMap::from([(
             "d.json".to_string(),
@@ -268,6 +317,7 @@ mod tests {
             facts: facts.clone(),
             rdap: rdap.clone(),
             cloudflare: None,
+            rates: Some(Arc::new(FakeRates)),
             counters: Arc::new(Counters::default()),
             intervals: Intervals {
                 rdap_spacing: Duration::ZERO,
@@ -280,6 +330,7 @@ mod tests {
         assert!(a.value().is_some() && a.error.is_none());
         let b = facts.rdap("b.pt").unwrap();
         assert!(b.value().is_none() && b.error.unwrap().contains(".pt"));
+        assert_eq!(facts.rates().unwrap().value().unwrap().per_eur["USD"], 1.08);
 
         // Nothing is due right after a pass.
         refresher.run_once().await;

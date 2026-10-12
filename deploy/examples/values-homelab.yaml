@@ -17,6 +17,8 @@ settings:
     ptisp:
       currency: EUR
       prices: { pt: 16.90 }
+  currency:
+    default: EUR
 
 cloudflare:
   accountId: 0123456789abcdef0123456789abcdef

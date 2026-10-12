@@ -20,7 +20,9 @@ fn settings_from_values(path: &str) -> Settings {
 #[test]
 fn default_values_parse() {
     let s = settings_from_values("deploy/helm/dominium/values.yaml");
-    assert_eq!(s, Settings::default());
+    assert_eq!(s.registrars, Settings::default().registrars);
+    assert_eq!(s.currency.default_currency(), "USD");
+    assert!(s.currency.rates_url().unwrap().is_some());
 }
 
 #[test]
@@ -28,4 +30,5 @@ fn example_values_parse() {
     let s = settings_from_values("deploy/examples/values-homelab.yaml");
     assert_eq!(s.registrars["ptisp"].prices["pt"], 16.9);
     assert_eq!(s.registrar_name("cloudflare"), "Cloudflare");
+    assert_eq!(s.currency.default_currency(), "EUR");
 }

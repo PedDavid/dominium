@@ -9,6 +9,7 @@ use dominium::cloudflare::{CloudflareClient, Registrar};
 use dominium::config::Config;
 use dominium::demo;
 use dominium::facts::{FactStore, Refresher};
+use dominium::fx::EcbClient;
 use dominium::inventory::{Inventory, StaticInventory};
 use dominium::k8s::KubeInventory;
 use dominium::metrics::{Counters, Metrics};
@@ -50,6 +51,13 @@ async fn main() -> anyhow::Result<()> {
                 settings.rdap.servers.clone(),
             )?),
             cloudflare,
+            rates: match settings.currency.rates_url()? {
+                Some(url) => Some(Arc::new(EcbClient::new(url)?)),
+                None => {
+                    info!("exchange rates: fixed rates from the settings only");
+                    None
+                }
+            },
             counters: counters.clone(),
             intervals: cfg.intervals(),
         }

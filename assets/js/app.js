@@ -80,6 +80,14 @@
     }
   });
 
+  // Currency for totals: remembered like the theme, applied on reload.
+  document.addEventListener('change', (event) => {
+    const select = event.target.closest('[data-currency-select]');
+    if (!select) return;
+    setCookie('dominium_currency', select.value);
+    window.location.reload();
+  });
+
   // Follow the OS preference until the user picks a theme.
   if (!document.cookie.includes('dominium_theme=') && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     root.classList.add('dark');

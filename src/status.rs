@@ -242,6 +242,16 @@ pub struct Domains {
 }
 
 impl Domains {
+    /// Exchange rates in effect: the last fetched ones, with fixed rates
+    /// from the settings on top.
+    pub fn rates(&self) -> crate::fx::RateTable {
+        let fetched = self.facts.rates();
+        crate::fx::RateTable::new(
+            fetched.as_ref().and_then(|c| c.value()),
+            &self.settings.currency.fixed_rates,
+        )
+    }
+
     pub fn overview(&self) -> Overview {
         Overview::compute(
             self.inventory.snapshot(),

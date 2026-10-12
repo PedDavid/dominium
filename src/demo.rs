@@ -1,5 +1,5 @@
 //! Sample data for `--demo`: an inventory, RDAP/Cloudflare answers relative
-//! to now and a price table (illustrative prices only).
+//! to now, a price table and exchange rates (illustrative values only).
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -8,6 +8,7 @@ use jiff::{SignedDuration, Timestamp};
 
 use crate::cloudflare::{CfDomain, CfDomains};
 use crate::facts::FactStore;
+use crate::fx::FetchedRates;
 use crate::inventory::{Snapshot, from_configmaps};
 use crate::rdap::RdapFacts;
 use crate::settings::Settings;
@@ -125,11 +126,25 @@ pub fn facts(now: Timestamp) -> Arc<FactStore> {
             ("forgotten.xyz".to_string(), cf(now + days(90), false)),
         ])),
     );
+    let rates = [
+        ("USD", 1.0812),
+        ("GBP", 0.8371),
+        ("CHF", 0.9385),
+        ("BRL", 6.0518),
+    ];
+    facts.record_rates(
+        checked,
+        Ok(FetchedRates {
+            date: Some((now - days(1)).to_zoned(jiff::tz::TimeZone::UTC).date()),
+            per_eur: rates.iter().map(|(c, r)| (c.to_string(), *r)).collect(),
+        }),
+    );
     facts
 }
 
 pub fn settings() -> Settings {
     let mut s = Settings::default();
+    s.currency.default = Some("EUR".into());
     let mut set = |key: &str, currency: &str, prices: &[(&str, f64)]| {
         let r = s.registrars.get_mut(key).expect("built-in registrar");
         r.currency = Some(currency.into());

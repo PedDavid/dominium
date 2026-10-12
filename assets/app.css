@@ -14,7 +14,8 @@
   }
 
   .card.stat {
-    @apply gap-0 py-4;
+    /* Visible overflow, so the breakdown card isn't clipped. */
+    @apply gap-0 overflow-visible py-4;
   }
   .stat-label {
     @apply text-sm text-muted-foreground;
@@ -24,6 +25,18 @@
   }
   .stat-note {
     @apply text-xs text-muted-foreground;
+  }
+
+  /* A card shown on hover or keyboard focus, for breakdowns. */
+  .hovercard {
+    @apply relative w-fit;
+  }
+  .hovercard-content {
+    @apply invisible absolute start-0 top-full z-50 mt-2 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-md border bg-popover p-3 text-sm text-popover-foreground opacity-0 shadow-md transition-opacity;
+  }
+  .hovercard:hover .hovercard-content,
+  .hovercard:focus-within .hovercard-content {
+    @apply visible opacity-100;
   }
 
   /* Expiry state colours, shared by badges, chips and dots. */
