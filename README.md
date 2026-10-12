@@ -274,8 +274,10 @@ two ways:
   test-only Playwright driver brings its own Node.js. Fonts and antialiasing
   vary between machines, so the baselines are the ones CI's `visual` job
   renders: when it fails, its `screenshots` artifact has each `-actual.png`
-  and `-diff.png`. Running the CI workflow by hand with *update screenshots*
-  ticked returns a full new set to commit.
+  and `-diff.png`. Running the CI workflow by
+  hand on a branch with *update screenshots* ticked renders a full new set and
+  commits it to that branch (untick *commit screenshots* to only get the
+  artifact).
 
 ## Limitations
 

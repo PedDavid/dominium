@@ -10,6 +10,10 @@ on:
         description: Render new screenshot baselines (download them from the run's artifact)
         type: boolean
         default: false
+      commit-screenshots:
+        description: With update-screenshots, also commit the new baselines to the selected branch
+        type: boolean
+        default: true
 
 env:
   CARGO_TERM_COLOR: always
@@ -33,6 +37,8 @@ jobs:
   visual:
     # Pinned so fonts and rendering only change when the baselines do.
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write # only used to commit baselines (commit-screenshots)
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.94
@@ -45,6 +51,18 @@ jobs:
       - name: Render new baselines
         if: ${{ inputs.update-screenshots }}
         run: make visual-update
+      - name: Commit new baselines
+        if: ${{ inputs.update-screenshots && inputs.commit-screenshots }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/screenshots/*.png
+          if git diff --cached --quiet; then
+            echo "Baselines unchanged"
+          else
+            git commit -m "Re-render screenshot baselines on CI"
+            git push
+          fi
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
