@@ -1,0 +1,100 @@
+---
+source: tests/snapshots.rs
+expression: html
+---
+
+<div class="table-container rounded-lg border">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Domain</th>
+        <th>Status</th>
+        <th>Expires</th>
+        <th class="hidden sm:table-cell">Auto-renew</th>
+        <th class="hidden md:table-cell">Registrar</th>
+        <th class="hidden md:table-cell text-end!">Per year</th>
+        <th class="text-end"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td>
+          <a href="/domains/lapsed.org" class="font-medium hover:underline">lapsed.org</a>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            
+            <span class="badge" data-variant="secondary">experiments</span>
+            
+          </div>
+        </td>
+        <td><span class="badge state-badge" data-state="expired"><span class="state-dot"></span>Expired</span></td>
+        <td>
+          <div title="2026-09-23">3d ago</div>
+          <div class="text-xs text-muted-foreground">2026-09-23</div>
+        </td>
+        <td class="hidden sm:table-cell">
+          <span class="text-(--state-warning)">off</span>
+          
+        </td>
+        <td class="hidden md:table-cell text-muted-foreground">Porkbun</td>
+        <td class="hidden md:table-cell text-end tabular-nums">$10.74</td>
+        <td class="text-end">
+          
+          <a class="btn" data-variant="ghost" data-size="sm" href="https://porkbun.com/account/domainsSpeedy" target="_blank" rel="noopener noreferrer">
+            Manage <svg
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 3h6v6" />
+  <path d="M10 14 21 3" />
+  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+</svg>
+          </a>
+          
+        </td>
+      </tr>
+      
+    </tbody>
+  </table>
+</div>
+
+<div id="state-chips" class="flex flex-wrap gap-2" role="group" aria-label="Filter by state" hx-swap-oob="true">
+  <label class="state-chip" data-active="false">
+    <input type="radio" name="state" value="" class="sr-only" >
+    All <span class="text-muted-foreground">2</span>
+  </label>
+  
+  <label class="state-chip" data-state="expired" data-active="true">
+    <input type="radio" name="state" value="expired" class="sr-only" checked>
+    <span class="state-dot"></span>Expired <span class="text-muted-foreground">1</span>
+  </label>
+  
+  <label class="state-chip" data-state="critical" data-active="false">
+    <input type="radio" name="state" value="critical" class="sr-only" >
+    <span class="state-dot"></span>Critical <span class="text-muted-foreground">1</span>
+  </label>
+  
+  <label class="state-chip" data-state="warning" data-active="false">
+    <input type="radio" name="state" value="warning" class="sr-only" >
+    <span class="state-dot"></span>Due soon <span class="text-muted-foreground">0</span>
+  </label>
+  
+  <label class="state-chip" data-state="unknown" data-active="false">
+    <input type="radio" name="state" value="unknown" class="sr-only" >
+    <span class="state-dot"></span>Unknown <span class="text-muted-foreground">0</span>
+  </label>
+  
+  <label class="state-chip" data-state="ok" data-active="false">
+    <input type="radio" name="state" value="ok" class="sr-only" >
+    <span class="state-dot"></span>OK <span class="text-muted-foreground">0</span>
+  </label>
+  
+</div>

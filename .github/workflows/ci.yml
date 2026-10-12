@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      update-screenshots:
+        description: Render new screenshot baselines (download them from the run's artifact)
+        type: boolean
+        default: false
 
 env:
   CARGO_TERM_COLOR: always
@@ -20,6 +26,31 @@ jobs:
       - run: cargo fmt --check
       - run: cargo clippy --all-targets --locked -- -D warnings
       - run: cargo test --locked
+    env:
+      # The screenshot tests are ignored here; the visual job runs them.
+      PLAYWRIGHT_SKIP_DRIVER_DOWNLOAD: "1"
+
+  visual:
+    # Pinned so fonts and rendering only change when the baselines do.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.94
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Chromium for the pinned Playwright driver
+        run: cargo run --locked --example install-browsers -- chromium --with-deps
+      - name: Screenshot tests
+        if: ${{ !inputs.update-screenshots }}
+        run: make visual
+      - name: Render new baselines
+        if: ${{ inputs.update-screenshots }}
+        run: make visual-update
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: screenshots
+          path: tests/screenshots/
+          if-no-files-found: ignore
 
   helm:
     runs-on: ubuntu-latest

@@ -1,0 +1,57 @@
+---
+source: tests/snapshots.rs
+expression: html
+---
+
+<div role="group" aria-labelledby="command-domains">
+  <span role="heading" id="command-domains">Expiring next</span>
+  
+  <a role="menuitem" href="/domains/lapsed.org" class="active">
+    <span class="state-dot" data-state="expired"></span>
+    <span class="truncate">lapsed.org</span>
+    <span class="ms-auto" data-shortcut>Expired · 3d ago</span>
+  </a>
+  
+  <a role="menuitem" href="/domains/shop-demo.net">
+    <span class="state-dot" data-state="critical"></span>
+    <span class="truncate">shop-demo.net</span>
+    <span class="ms-auto" data-shortcut>Critical · in 5d</span>
+  </a>
+  
+  <a role="menuitem" href="/domains/example.dev">
+    <span class="state-dot" data-state="ok"></span>
+    <span class="truncate">example.dev</span>
+    <span class="ms-auto" data-shortcut>OK · in 19d</span>
+  </a>
+  
+  <a role="menuitem" href="/domains/old-blog.com">
+    <span class="state-dot" data-state="warning"></span>
+    <span class="truncate">old-blog.com</span>
+    <span class="ms-auto" data-shortcut>Due soon · in 23d</span>
+  </a>
+  
+  <a role="menuitem" href="/domains/exemplo.pt">
+    <span class="state-dot" data-state="ok"></span>
+    <span class="truncate">exemplo.pt</span>
+    <span class="ms-auto" data-shortcut>OK · in 139d</span>
+  </a>
+  
+  <a role="menuitem" href="/domains/prdv.cloud">
+    <span class="state-dot" data-state="ok"></span>
+    <span class="truncate">prdv.cloud</span>
+    <span class="ms-auto" data-shortcut>OK · in 212d</span>
+  </a>
+  
+  <a role="menuitem" href="/domains/side-project.io">
+    <span class="state-dot" data-state="ok"></span>
+    <span class="truncate">side-project.io</span>
+    <span class="ms-auto" data-shortcut>OK · in 300d</span>
+  </a>
+  
+  <a role="menuitem" href="/domains/typo-domain.com">
+    <span class="state-dot" data-state="unknown"></span>
+    <span class="truncate">typo-domain.com</span>
+    <span class="ms-auto" data-shortcut>Unknown · —</span>
+  </a>
+  
+</div>

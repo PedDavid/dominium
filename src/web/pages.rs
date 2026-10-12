@@ -5,7 +5,6 @@ use axum::extract::{Path, Query, State};
 use axum::http::HeaderMap;
 use axum::response::{Html, IntoResponse, Response};
 use axum_extra::extract::CookieJar;
-use jiff::Timestamp;
 use serde::Deserialize;
 
 use super::views::{DomainDetail, DomainRow, EstimateView};
@@ -173,7 +172,7 @@ pub async fn index(
     headers: HeaderMap,
     Query(filters): Query<Filters>,
 ) -> Result<Response, AppError> {
-    let now = Timestamp::now();
+    let now = state.now();
     let layout = Layout::new(&state, &jar, "Domains");
     let rates = state.inner.domains.rates();
     let in_display = |p: &Price| rates.convert(p.amount, &p.currency, &layout.currency);
@@ -298,7 +297,7 @@ pub async fn detail(
         .iter()
         .find(|d| d.name() == name)
         .ok_or_else(|| AppError::NotFound(format!("no domain named {name:?} in the inventory")))?;
-    let d = DomainDetail::new(domain, Timestamp::now());
+    let d = DomainDetail::new(domain, state.now());
     Ok(Html(
         DetailPage {
             layout: Layout::new(&state, &jar, d.row.name.clone()),
@@ -328,7 +327,7 @@ pub async fn search(
     State(state): State<AppState>,
     Query(query): Query<SearchQuery>,
 ) -> Result<Response, AppError> {
-    let now = Timestamp::now();
+    let now = state.now();
     let q = query.q.trim().to_string();
     let mut rows: Vec<DomainRow> = state
         .inner

@@ -32,5 +32,7 @@ askama_web = { version = "0.16", features = ["axum-0.8"] }
 
 [dev-dependencies]
 http-body-util = "0.1.5"
+insta = { version = "1.48.0", features = ["filters"] }
+playwright-rs = { version = "=0.18.1", default-features = false, features = ["aws-lc", "route-service", "screenshot-diff"] }
 tower = { version = "0.5.3", features = ["util"] }
 wiremock = "0.6.5"
