@@ -28,8 +28,30 @@
     <div class="card stat">
       <section>
         <p class="stat-label">Renewals per year</p>
-        <p class="stat-value">{% if summary.yearly.is_empty() %}—{% else %}{% for t in summary.yearly %}{% if !loop.first %}<span class="text-muted-foreground"> + </span>{% endif %}{{ t }}{% endfor %}{% endif %}</p>
-        <p class="stat-note">{% if summary.unpriced == 0 %}every domain priced{% else %}{{ summary.unpriced }} without a price{% endif %}</p>
+        {% if let Some(e) = summary.yearly %}
+        <div class="hovercard">
+          <p class="stat-value cursor-help underline decoration-dotted decoration-muted-foreground/50 underline-offset-4" tabindex="0" aria-describedby="yearly-breakdown">{% if e.approximate %}≈ {% endif %}{{ e.total }}</p>
+          <div id="yearly-breakdown" role="tooltip" class="hovercard-content">
+            <p class="font-medium">{% if e.approximate %}Estimate in {{ e.currency }} at current rates{% else %}Total in {{ e.currency }}{% endif %}</p>
+            <ul class="flex flex-col gap-2">
+              {% for l in e.lines %}
+              <li>
+                <div class="flex justify-between gap-4 tabular-nums">
+                  <span>{{ l.original }}</span>
+                  {% if !l.converted.is_empty() %}<span>≈ {{ l.converted }}</span>{% endif %}
+                </div>
+                {% if !l.rate.is_empty() %}<p class="text-xs text-muted-foreground">{{ l.rate }}</p>{% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+            {% if e.approximate %}<p class="text-xs text-muted-foreground">Registrars charge in their own currency, so the amount paid depends on the rate on the day.</p>{% endif %}
+          </div>
+        </div>
+        <p class="stat-note">{% if summary.unpriced == 0 %}every domain priced{% else %}{{ summary.unpriced }} without a price{% endif %}{% if e.incomplete %} · some currencies have no rate{% endif %}</p>
+        {% else %}
+        <p class="stat-value">—</p>
+        <p class="stat-note">{% if summary.total == 0 %}no domains{% else %}no prices yet: add them to the settings{% endif %}</p>
+        {% endif %}
       </section>
     </div>
   </div>

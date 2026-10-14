@@ -1,10 +1,9 @@
 //! View models: domain statuses turned into pre-formatted rows for the templates.
 
-use std::collections::BTreeMap;
-
 use jiff::{SignedDuration, Timestamp};
 
 use crate::duration::humanize;
+use crate::fx::Estimate;
 use crate::inventory::Price;
 use crate::status::{DomainStatus, Source, State};
 
@@ -116,15 +115,70 @@ impl DomainRow {
     }
 }
 
-/// Yearly cost per currency, largest first, e.g. `["$84.12", "€16.90"]`.
-pub fn yearly_totals(rows: &[DomainRow]) -> Vec<String> {
-    let mut totals: BTreeMap<&str, f64> = BTreeMap::new();
-    for p in rows.iter().filter_map(|r| r.price.as_ref()) {
-        *totals.entry(p.currency.as_str()).or_default() += p.amount;
+/// Yearly renewals as one amount in the viewer's currency, with the
+/// per-currency breakdown and the rates used.
+pub struct EstimateView {
+    pub currency: String,
+    pub total: String,
+    /// Some amount was converted, so the total is an estimate.
+    pub approximate: bool,
+    /// Some currency had no rate and is left out of the total.
+    pub incomplete: bool,
+    pub lines: Vec<EstimateLine>,
+}
+
+pub struct EstimateLine {
+    pub original: String,
+    /// Empty when no conversion was needed or possible.
+    pub converted: String,
+    /// "1 USD = 0.9249 EUR · ECB reference rate of 2026-10-09", or why not.
+    pub rate: String,
+}
+
+impl EstimateView {
+    pub fn new(e: &Estimate) -> Option<EstimateView> {
+        if e.parts.is_empty() {
+            return None;
+        }
+        let lines = e
+            .parts
+            .iter()
+            .map(|p| EstimateLine {
+                original: fmt_money(p.amount, &p.currency),
+                converted: match (p.currency == e.currency, p.converted) {
+                    (false, Some(c)) => fmt_money(c, &e.currency),
+                    _ => String::new(),
+                },
+                rate: match p.rate {
+                    _ if p.currency == e.currency => String::new(),
+                    Some(r) => format!(
+                        "1 {} = {} {} · {}",
+                        p.currency,
+                        fmt_rate(r),
+                        e.currency,
+                        p.origin
+                    ),
+                    None => format!("no {} rate: left out of the total", p.currency),
+                },
+            })
+            .collect();
+        Some(EstimateView {
+            currency: e.currency.clone(),
+            total: fmt_money(e.total, &e.currency),
+            approximate: e.is_estimate(),
+            incomplete: e.missing_rates(),
+            lines,
+        })
     }
-    let mut totals: Vec<(&str, f64)> = totals.into_iter().collect();
-    totals.sort_by(|a, b| b.1.total_cmp(&a.1));
-    totals.into_iter().map(|(c, a)| fmt_money(a, c)).collect()
+}
+
+/// Four significant-looking decimals for small rates, fewer for large ones.
+pub fn fmt_rate(r: f64) -> String {
+    if r >= 100.0 {
+        format!("{r:.2}")
+    } else {
+        format!("{r:.4}")
+    }
 }
 
 pub struct DomainDetail {
@@ -248,5 +302,46 @@ mod tests {
         assert_eq!(fmt_money(10.444, "USD"), "$10.44");
         assert_eq!(fmt_money(16.9, "EUR"), "€16.90");
         assert_eq!(fmt_money(1.0, "CHF"), "1.00 CHF");
+        assert_eq!(fmt_rate(0.924_855), "0.9249");
+        assert_eq!(fmt_rate(162.1), "162.10");
+    }
+
+    #[test]
+    fn estimate_lines() {
+        use crate::fx::{FetchedRates, RateTable};
+        let table = RateTable::new(
+            Some(&FetchedRates {
+                date: Some("2026-10-09".parse().unwrap()),
+                per_eur: [("USD".to_string(), 1.08)].into(),
+            }),
+            &Default::default(),
+        );
+        let prices = [
+            Price {
+                amount: 108.0,
+                currency: "USD".into(),
+            },
+            Price {
+                amount: 16.9,
+                currency: "EUR".into(),
+            },
+            Price {
+                amount: 5.0,
+                currency: "BRL".into(),
+            },
+        ];
+        let v = EstimateView::new(&Estimate::compute(&prices, &table, "EUR")).unwrap();
+        assert_eq!(v.total, "€116.90");
+        assert!(v.approximate && v.incomplete);
+        assert_eq!(v.lines[0].original, "$108.00");
+        assert_eq!(v.lines[0].converted, "€100.00");
+        assert_eq!(
+            v.lines[0].rate,
+            "1 USD = 0.9259 EUR · ECB reference rate of 2026-10-09"
+        );
+        assert_eq!(v.lines[1].converted, "");
+        assert_eq!(v.lines[1].rate, "");
+        assert_eq!(v.lines[2].rate, "no BRL rate: left out of the total");
+        assert!(EstimateView::new(&Estimate::compute(&[], &table, "EUR")).is_none());
     }
 }

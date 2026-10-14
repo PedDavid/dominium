@@ -23,11 +23,20 @@ pub struct ResultLabels {
 pub struct Counters {
     pub rdap: Family<ResultLabels, Counter>,
     pub cloudflare: Family<ResultLabels, Counter>,
+    pub rates: Family<ResultLabels, Counter>,
 }
 
 impl Counters {
     pub fn rdap(&self, result: &str) {
         self.rdap
+            .get_or_create(&ResultLabels {
+                result: result.into(),
+            })
+            .inc();
+    }
+
+    pub fn rates(&self, result: &str) {
+        self.rates
             .get_or_create(&ResultLabels {
                 result: result.into(),
             })
@@ -59,6 +68,11 @@ impl Metrics {
             "dominium_cloudflare_requests",
             "Cloudflare Registrar listings by result",
             counters.cloudflare.clone(),
+        );
+        registry.register(
+            "dominium_exchange_rate_requests",
+            "Exchange rate downloads by result",
+            counters.rates.clone(),
         );
         registry.register_collector(Box::new(DomainCollector { domains }));
         Arc::new(Metrics { registry })
@@ -232,6 +246,21 @@ impl prometheus_client::collector::Collector for DomainCollector {
             }
         }
         {
+            let rates = self.domains.rates();
+            let mut metric = encoder.encode_descriptor(
+                "dominium_exchange_rate",
+                "Units of the currency per 1 EUR (ECB reference rates or fixed in the settings)",
+                None,
+                MetricType::Gauge,
+            )?;
+            for c in rates.currencies().filter(|c| *c != "EUR") {
+                if let Some(r) = rates.rate("EUR", c) {
+                    let l: Labels = vec![("currency", c.to_string())];
+                    ConstGauge::new(r).encode(metric.encode_family(&l)?)?;
+                }
+            }
+        }
+        {
             let problems = encoder.encode_descriptor(
                 "dominium_inventory_problems",
                 "Invalid or duplicate inventory entries",
@@ -289,6 +318,13 @@ mod tests {
             settings: Settings::default(),
             thresholds: Thresholds::default(),
         });
+        domains.facts.record_rates(
+            now,
+            Ok(crate::fx::FetchedRates {
+                date: None,
+                per_eur: BTreeMap::from([("USD".to_string(), 1.08)]),
+            }),
+        );
         let counters = Counters::default();
         let metrics = Metrics::new(domains, &counters);
         counters.rdap("ok");
@@ -306,6 +342,7 @@ mod tests {
             r#"dominium_domain_last_checked_timestamp_seconds{domain="a.com",registrar="namecheap",source="rdap"} 1788220800"#,
             r#"dominium_undeclared_domain{domain="stray.dev"} 1"#,
             "dominium_inventory_problems 1",
+            r#"dominium_exchange_rate{currency="USD"} 1.08"#,
             r#"dominium_rdap_requests_total{result="ok"} 1"#,
         ] {
             assert!(text.contains(expected), "missing {expected}\n{text}");

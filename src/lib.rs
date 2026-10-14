@@ -3,6 +3,7 @@ pub mod config;
 pub mod demo;
 pub mod duration;
 pub mod facts;
+pub mod fx;
 pub mod inventory;
 pub mod k8s;
 pub mod metrics;

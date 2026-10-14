@@ -5,12 +5,12 @@ use axum::extract::{Path, Query, State};
 use axum::http::HeaderMap;
 use axum::response::{Html, IntoResponse, Response};
 use axum_extra::extract::CookieJar;
-use jiff::Timestamp;
 use serde::Deserialize;
 
-use super::views::{DomainDetail, DomainRow, yearly_totals};
+use super::views::{DomainDetail, DomainRow, EstimateView};
 use super::{AppError, AppState};
-use crate::inventory::Problem;
+use crate::fx::{self, Estimate, RateTable};
+use crate::inventory::{Price, Problem};
 use crate::status::State as DomainState;
 
 /// Data shared by every full page.
@@ -20,12 +20,40 @@ pub struct Layout {
     pub dark: bool,
     pub palette: String,
     pub demo: bool,
+    /// Currency totals are shown in, and the ones the picker offers.
+    pub currency: String,
+    pub currencies: Vec<String>,
 }
 
 pub const PALETTES: [&str; 5] = ["neutral", "blue", "green", "orange", "violet"];
 
+/// The currencies a viewer can pick: every currency with a rate, every
+/// currency a price is in, and the configured default.
+fn currency_options(state: &AppState, rates: &RateTable) -> Vec<String> {
+    let domains = &state.inner.domains;
+    let mut options: Vec<String> = rates.currencies().map(str::to_string).collect();
+    options.extend(
+        domains
+            .overview()
+            .domains
+            .iter()
+            .filter_map(|d| d.price.as_ref().map(|(p, _)| p.currency.clone())),
+    );
+    options.push(domains.settings.currency.default_currency());
+    options.sort();
+    options.dedup();
+    options
+}
+
 impl Layout {
     fn new(state: &AppState, jar: &CookieJar, title: impl Into<String>) -> Layout {
+        let rates = state.inner.domains.rates();
+        let currencies = currency_options(state, &rates);
+        let currency = jar
+            .get("dominium_currency")
+            .map(|c| c.value().to_string())
+            .filter(|c| fx::valid_code(c) && currencies.contains(c))
+            .unwrap_or_else(|| state.inner.domains.settings.currency.default_currency());
         let palette = jar
             .get("dominium_palette")
             .map(|c| c.value().to_string())
@@ -39,6 +67,8 @@ impl Layout {
                 .is_some_and(|c| c.value() == "dark"),
             palette,
             demo: state.inner.demo,
+            currency,
+            currencies,
         }
     }
 }
@@ -70,7 +100,7 @@ pub struct Summary {
     pub next_name: String,
     pub next_rel: String,
     pub next_date: String,
-    pub yearly: Vec<String>,
+    pub yearly: Option<EstimateView>,
     pub unpriced: usize,
 }
 
@@ -111,7 +141,7 @@ fn is_htmx(headers: &HeaderMap, target: &str) -> bool {
             .is_some_and(|t| t == target)
 }
 
-fn summary(all: &[DomainRow]) -> Summary {
+fn summary(all: &[DomainRow], rates: &RateTable, currency: &str) -> Summary {
     let next = all
         .iter()
         .filter(|r| r.state != DomainState::Expired)
@@ -127,7 +157,11 @@ fn summary(all: &[DomainRow]) -> Summary {
         next_name: next.map(|r| r.name.clone()).unwrap_or_default(),
         next_rel: next.map(|r| r.expires_rel.clone()).unwrap_or_default(),
         next_date: next.map(|r| r.expires_date.clone()).unwrap_or_default(),
-        yearly: yearly_totals(all),
+        yearly: EstimateView::new(&Estimate::compute(
+            all.iter().filter_map(|r| r.price.as_ref()),
+            rates,
+            currency,
+        )),
         unpriced: all.iter().filter(|r| r.price.is_none()).count(),
     }
 }
@@ -138,7 +172,10 @@ pub async fn index(
     headers: HeaderMap,
     Query(filters): Query<Filters>,
 ) -> Result<Response, AppError> {
-    let now = Timestamp::now();
+    let now = state.now();
+    let layout = Layout::new(&state, &jar, "Domains");
+    let rates = state.inner.domains.rates();
+    let in_display = |p: &Price| rates.convert(p.amount, &p.currency, &layout.currency);
     let overview = state.inner.domains.overview();
     let all: Vec<DomainRow> = overview
         .domains
@@ -179,7 +216,7 @@ pub async fn index(
         .into_iter()
         .filter(|r| wanted_state.is_none_or(|s| r.state == s))
         .collect();
-    sort_rows(&mut rows, &filters.sort);
+    sort_rows(&mut rows, &filters.sort, in_display);
 
     if is_htmx(&headers, "domains-table") {
         return Ok(Html(
@@ -197,8 +234,8 @@ pub async fn index(
     }
     Ok(Html(
         IndexPage {
-            layout: Layout::new(&state, &jar, "Domains"),
-            summary: summary(&all),
+            summary: summary(&all, &rates, &layout.currency),
+            layout,
             problems: overview.snapshot.problems,
             undeclared: overview.undeclared,
             rows,
@@ -215,16 +252,17 @@ pub async fn index(
     .into_response())
 }
 
-fn sort_rows(rows: &mut [DomainRow], sort: &str) {
+/// `price` gives a row's price in the viewer's currency, for "most expensive".
+fn sort_rows(rows: &mut [DomainRow], sort: &str, price: impl Fn(&Price) -> Option<f64>) {
     match sort {
         "name" => rows.sort_by(|a, b| a.name.cmp(&b.name)),
         "registrar" => rows.sort_by(|a, b| {
             (a.registrar_name.to_lowercase(), &a.name)
                 .cmp(&(b.registrar_name.to_lowercase(), &b.name))
         }),
-        // Most expensive first; unpriced last.
+        // Most expensive first; unpriced (or unconvertible) last.
         "price" => rows.sort_by(|a, b| {
-            let amount = |r: &DomainRow| r.price.as_ref().map(|p| p.amount);
+            let amount = |r: &DomainRow| r.price.as_ref().and_then(&price);
             amount(b)
                 .partial_cmp(&amount(a))
                 .unwrap_or(std::cmp::Ordering::Equal)
@@ -259,7 +297,7 @@ pub async fn detail(
         .iter()
         .find(|d| d.name() == name)
         .ok_or_else(|| AppError::NotFound(format!("no domain named {name:?} in the inventory")))?;
-    let d = DomainDetail::new(domain, Timestamp::now());
+    let d = DomainDetail::new(domain, state.now());
     Ok(Html(
         DetailPage {
             layout: Layout::new(&state, &jar, d.row.name.clone()),
@@ -289,7 +327,7 @@ pub async fn search(
     State(state): State<AppState>,
     Query(query): Query<SearchQuery>,
 ) -> Result<Response, AppError> {
-    let now = Timestamp::now();
+    let now = state.now();
     let q = query.q.trim().to_string();
     let mut rows: Vec<DomainRow> = state
         .inner
@@ -300,7 +338,7 @@ pub async fn search(
         .map(|d| DomainRow::new(d, now))
         .filter(|r| q.is_empty() || r.matches(&q))
         .collect();
-    sort_rows(&mut rows, "");
+    sort_rows(&mut rows, "", |_| None);
     rows.truncate(8);
     Ok(Html(SearchResults { q, rows }.render()?).into_response())
 }

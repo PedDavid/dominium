@@ -18,6 +18,10 @@ Same stack and look as [you-spin-me](https://github.com/PedDavid/you-spin-me).
 |---|---|
 | ![Detail](docs/screenshots/detail-dark.png) | ![Search](docs/screenshots/command-palette.png) |
 
+| Yearly total, estimated in one currency |
+|---|
+| ![Estimate](docs/screenshots/estimate.png) |
+
 ## How it works
 
 ```
@@ -162,6 +166,28 @@ settings:
 `rdapNames` defaults to the key; matching ignores case and punctuation, so
 `namecheap` matches "NameCheap, Inc.".
 
+### Currencies
+
+Each price keeps its own currency. The yearly total is estimated in one
+currency, picked by each viewer next to the theme toggle (remembered in a
+cookie) and defaulting to `settings.currency.default`. Hovering the total
+shows the breakdown per currency and the rate used for each.
+
+Rates are the [ECB's daily reference rates](https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html)
+(about 30 currencies, published once per working day, no key), fetched every
+6h. This needs egress to `www.ecb.europa.eu`. Fixed rates override them, or
+replace them with `ratesUrl: ""`:
+
+```yaml
+settings:
+  currency:
+    default: EUR
+    fixedRates: { BRL: 6.05 }   # units per 1 EUR
+```
+
+A currency without any rate is left out of the total, and the breakdown says
+so.
+
 ### Cloudflare (optional)
 
 Create an account API token with read access to the Registrar only, store it
@@ -199,7 +225,8 @@ metrics carry `domain` and `registrar`.
 | `dominium_domain_info{purpose, source}` | Metadata for joins |
 | `dominium_undeclared_domain{domain}` | In the Cloudflare account, in no inventory |
 | `dominium_inventory_problems` | Invalid or duplicate inventory entries |
-| `dominium_rdap_requests_total{result}`, `dominium_cloudflare_requests_total{result}` | |
+| `dominium_exchange_rate{currency}` | Units per 1 EUR, as used for estimates |
+| `dominium_rdap_requests_total{result}`, `dominium_cloudflare_requests_total{result}`, `dominium_exchange_rate_requests_total{result}` | |
 
 The alert rules are in [`files/alerts.yaml`](deploy/helm/dominium/files/alerts.yaml),
 with `promtool` unit tests in [`deploy/tests`](deploy/tests/alerts_test.yaml).
@@ -231,7 +258,26 @@ make check        # fmt, clippy, tests
 make css          # rebuild assets/dist/app.css (Tailwind standalone CLI)
 make helm-lint
 make alerts-test  # render the alert rules and run their promtool tests
+make visual       # screenshot tests in Chromium (make visual-browsers first)
 ```
+
+Every page is rendered at a fixed moment (`tests/common/mod.rs`) and checked
+two ways:
+
+- **HTML snapshots** (`tests/snapshots.rs`, [insta](https://insta.rs)) run with
+  `cargo test`. After an intended markup change, accept it with
+  `cargo insta review`.
+- **Screenshots** (`tests/visual.rs`,
+  [playwright-rs](https://github.com/padamson/playwright-rust)) drive Chromium
+  against the router in-process, including dark mode, a palette, a state
+  filter and the ⌘K palette, and compare with `tests/screenshots/*.png`. The
+  test-only Playwright driver brings its own Node.js. Fonts and antialiasing
+  vary between machines, so the baselines are the ones CI's `visual` job
+  renders: when it fails, its `screenshots` artifact has each `-actual.png`
+  and `-diff.png`. Running the CI workflow by
+  hand on a branch with *update screenshots* ticked renders a full new set and
+  commits it to that branch (untick *commit screenshots* to only get the
+  artifact).
 
 ## Limitations
 
@@ -241,4 +287,6 @@ make alerts-test  # render the alert rules and run their promtool tests
 - **Only Cloudflare's API.** Auto-renew for Namecheap, Porkbun and PTisp comes
   from the inventory, not from the registrar.
 - **Prices are maintained by hand** in the settings or the inventory.
+- **Totals in one currency are estimates** at the ECB's reference rates, not
+  what a card will be charged.
 - **Single replica.** Caches are per process.

@@ -1,5 +1,6 @@
 //! The settings file: registrars (display name, dashboard link, how RDAP
-//! names them, renewal prices per TLD) and RDAP server overrides.
+//! names them, renewal prices per TLD), RDAP server overrides and currency
+//! conversion.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -7,6 +8,7 @@ use std::path::Path;
 use anyhow::Context;
 use serde::Deserialize;
 
+use crate::fx;
 use crate::inventory::{Declared, Price};
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
@@ -30,8 +32,24 @@ pub struct Registrar {
     pub prices: BTreeMap<String, f64>,
 }
 
-/// Prices as numbers or numeric strings (`helm --set` produces strings).
+/// Prices per TLD, as numbers or numeric strings (`helm --set` produces strings).
 fn prices<'de, D: serde::Deserializer<'de>>(d: D) -> Result<BTreeMap<String, f64>, D::Error> {
+    amounts(d, |tld| tld.trim_start_matches('.').to_ascii_lowercase())
+}
+
+/// Exchange rates per currency code, as numbers or numeric strings.
+fn rates<'de, D: serde::Deserializer<'de>>(d: D) -> Result<BTreeMap<String, f64>, D::Error> {
+    let rates = amounts(d, |c| c.trim().to_ascii_uppercase())?;
+    match rates.keys().find(|c| !fx::valid_code(c)) {
+        Some(c) => Err(serde::de::Error::custom(format!("invalid currency {c:?}"))),
+        None => Ok(rates),
+    }
+}
+
+fn amounts<'de, D: serde::Deserializer<'de>>(
+    d: D,
+    key: fn(&str) -> String,
+) -> Result<BTreeMap<String, f64>, D::Error> {
     #[derive(Deserialize)]
     #[serde(untagged)]
     enum Amount {
@@ -46,8 +64,8 @@ fn prices<'de, D: serde::Deserializer<'de>>(d: D) -> Result<BTreeMap<String, f64
                 Amount::Text(t) => t.trim().parse().ok(),
             }
             .filter(|v: &f64| v.is_finite() && *v >= 0.0)
-            .ok_or_else(|| serde::de::Error::custom(format!("invalid price for .{tld}")))?;
-            Ok((tld.trim_start_matches('.').to_ascii_lowercase(), value))
+            .ok_or_else(|| serde::de::Error::custom(format!("invalid amount for {tld:?}")))?;
+            Ok((key(&tld), value))
         })
         .collect()
 }
@@ -61,6 +79,44 @@ pub struct RdapSettings {
     pub servers: BTreeMap<String, String>,
 }
 
+#[derive(Clone, Debug, Default, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct CurrencySettings {
+    /// Currency totals are estimated in until a viewer picks another one.
+    #[serde(default)]
+    pub default: Option<String>,
+    /// Daily rates in the ECB's XML format. Unset: the ECB's own file;
+    /// empty: don't fetch (fixed rates only).
+    #[serde(default)]
+    pub rates_url: Option<String>,
+    /// Units per 1 EUR, e.g. `{ USD: 1.08 }`. Override fetched rates.
+    #[serde(default, deserialize_with = "rates")]
+    pub fixed_rates: BTreeMap<String, f64>,
+}
+
+impl CurrencySettings {
+    pub fn default_currency(&self) -> String {
+        self.default
+            .as_deref()
+            .map(|c| c.trim().to_ascii_uppercase())
+            .filter(|c| fx::valid_code(c))
+            .unwrap_or_else(|| "USD".into())
+    }
+
+    /// Where to fetch rates from, if anywhere.
+    pub fn rates_url(&self) -> anyhow::Result<Option<url::Url>> {
+        match self.rates_url.as_deref().map(str::trim) {
+            None => Ok(Some(fx::ECB_DAILY.parse()?)),
+            Some("") => Ok(None),
+            Some(u) => {
+                Ok(Some(u.parse().with_context(|| {
+                    format!("invalid currency.ratesUrl {u:?}")
+                })?))
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Settings {
@@ -68,6 +124,8 @@ pub struct Settings {
     pub registrars: BTreeMap<String, Registrar>,
     #[serde(default)]
     pub rdap: RdapSettings,
+    #[serde(default)]
+    pub currency: CurrencySettings,
 }
 
 fn builtin(name: &str, url: &str) -> Registrar {
@@ -105,6 +163,7 @@ impl Default for Settings {
         Settings {
             registrars,
             rdap: RdapSettings::default(),
+            currency: CurrencySettings::default(),
         }
     }
 }
@@ -139,6 +198,12 @@ impl Settings {
             entry.prices.extend(r.prices);
         }
         settings.rdap = file.rdap;
+        if let Some(d) = &file.currency.default
+            && !fx::valid_code(&d.trim().to_ascii_uppercase())
+        {
+            anyhow::bail!("currency.default must be a code like EUR or USD");
+        }
+        settings.currency = file.currency;
         Ok(settings)
     }
 
@@ -259,5 +324,30 @@ mod tests {
                 .unwrap();
         assert_eq!(s.registrars["a"].prices["com"], 10.44);
         assert_eq!(s.registrars["a"].prices["dev"], 12.0);
+    }
+
+    #[test]
+    fn currency_settings() {
+        let s = Settings::default();
+        assert_eq!(s.currency.default_currency(), "USD");
+        assert_eq!(
+            s.currency.rates_url().unwrap().unwrap().as_str(),
+            crate::fx::ECB_DAILY
+        );
+        let c: CurrencySettings =
+            serde_yaml::from_str("{ default: eur, ratesUrl: '', fixedRates: { usd: '1.08' } }")
+                .unwrap();
+        assert_eq!(c.default_currency(), "EUR");
+        assert_eq!(c.rates_url().unwrap(), None);
+        assert_eq!(c.fixed_rates["USD"], 1.08);
+        assert!(
+            serde_yaml::from_str::<CurrencySettings>("{ fixedRates: { dollars: 1 } }").is_err()
+        );
+
+        let path = std::env::temp_dir().join(format!("dominium-currency-{}", std::process::id()));
+        std::fs::write(&path, "currency: { default: euros }\n").unwrap();
+        let err = Settings::load(Some(&path)).unwrap_err().to_string();
+        std::fs::remove_file(&path).ok();
+        assert!(err.contains("currency.default"), "{err}");
     }
 }

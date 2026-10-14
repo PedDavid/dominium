@@ -36,6 +36,13 @@ settings:
   rdap:
     # RDAP base URL per TLD, for TLDs missing from the IANA bootstrap file.
     servers: {}
+  # Yearly totals are estimated in one currency, converted with the ECB's
+  # daily reference rates (fetched every 6h, needs egress to
+  # www.ecb.europa.eu). Viewers can pick another currency in the UI.
+  currency:
+    default: USD
+    # ratesUrl: ""          # "" disables fetching: fixed rates only
+    fixedRates: {}          # units per 1 EUR, override the ECB, e.g. { USD: 1.08 }
 
 # Optional: Cloudflare Registrar integration (auto-renew, lock, drift).
 # Needs an account API token with read access to the Registrar only.
